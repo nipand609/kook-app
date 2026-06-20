@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kook Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh;}
+.topbar{background:#1a1a1a;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-size:16px;font-weight:600;color:#fff;}.logo span{color:#f5a623;}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:20px;margin-bottom:16px;}
+.ctitle{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;}
+.lbl{font-size:13px;color:#555;display:block;margin-bottom:5px;}
+input,select,textarea{width:100%;padding:9px 12px;font-size:14px;font-family:'Sarabun',sans-serif;border:1px solid #ddd;border-radius:8px;outline:none;transition:border .15s;}
+input:focus,select:focus{border-color:#f5a623;box-shadow:0 0 0 3px #f5a62322;}
+.field{margin-bottom:12px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.btn{padding:9px 18px;font-size:13px;font-weight:600;border:none;border-radius:8px;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;}
+.btn-primary{background:#f5a623;color:#fff;}.btn-primary:hover{background:#e09510;}
+.btn-danger{background:#fde8e8;color:#c0392b;border:1px solid #f5b7b1;}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.btn-full{width:100%;padding:12px;}
+.login-wrap{max-width:380px;margin:80px auto;padding:0 16px;}
+.login-card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:32px;}
+.login-logo{font-size:22px;font-weight:600;text-align:center;margin-bottom:6px;}.login-logo span{color:#f5a623;}
+.login-sub{font-size:13px;color:#aaa;text-align:center;margin-bottom:24px;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{padding:8px 12px;text-align:left;background:#f8f7f5;color:#666;font-weight:600;border-bottom:2px solid #e8e6e0;}
+.tbl td{padding:10px 12px;border-bottom:1px solid #f0eeea;vertical-align:middle;}
+.tbl tr:hover td{background:#fafafa;}
+.badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:99px;font-weight:500;}
+.badge-green{background:#d1f0e0;color:#145a32;}.badge-red{background:#fde8e8;color:#8b1a1a;}.badge-gray{background:#f0eeea;color:#666;}.badge-blue{background:#dbeafe;color:#1e40af;}
+.token-bar{height:8px;background:#f0eeea;border-radius:99px;overflow:hidden;min-width:80px;}
+.token-fill{height:100%;border-radius:99px;background:#f5a623;}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.stat-card{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:14px;}
+.stat-val{font-size:22px;font-weight:600;}.stat-lbl{font-size:12px;color:#aaa;margin-top:2px;}
+.stat-card.hi{background:#f5a623;border-color:#f5a623;}.stat-card.hi .stat-val,.stat-card.hi .stat-lbl{color:#fff;}
+.search-row{display:flex;gap:8px;margin-bottom:14px;}.search-row input{flex:1;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:999;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:24px;width:460px;max-width:95vw;}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:16px;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+.key-display{font-family:monospace;font-size:13px;background:#f8f7f5;padding:10px 12px;border-radius:8px;border:1px solid #e8e6e0;word-break:break-all;}
+.copy-btn{background:#EEEDFE;color:#3C3489;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;margin-left:6px;}
+.err{color:#c0392b;font-size:12px;text-align:center;margin-top:8px;display:none;}
+.loading{text-align:center;padding:20px;color:#aaa;font-size:13px;}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">🎬 Kook <span>Admin</span></div>
+    <div class="login-sub">ระบบจัดการ Keys และ Tokens</div>
+    <div class="field"><label class="lbl">Admin Password</label><input type="password" id="adminPwd" placeholder="รหัสผ่าน Admin..." onkeydown="if(event.key==='Enter')adminLogin()"/></div>
+    <button class="btn btn-primary btn-full" onclick="adminLogin()">เข้าสู่ระบบ</button>
+    <div class="err" id="loginErr">รหัสผ่านไม่ถูกต้อง</div>
+  </div>
+</div>
+</div>
+
+<div id="mainScreen" style="display:none;">
+<div class="topbar">
+  <div class="logo">🎬 Kook <span>Admin Panel</span></div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <span style="color:#aaa;font-size:13px;">Supabase Connected ✅</span>
+    <button class="btn btn-sm" style="background:#333;color:#fff;" onclick="adminLogout()">ออก</button>
+  </div>
+</div>
+<div class="wrap">
+
+<div class="stat-grid" id="statGrid"><div class="loading">กำลังโหลด...</div></div>
+
+<div class="card">
+  <div class="ctitle">⚙️ ตั้งค่าระบบ</div>
+  <div class="g2">
+    <div class="field"><label class="lbl">VectorEngine API Key (ส่วนกลาง — ผู้ใช้ไม่เห็น)</label><input type="password" id="cfgApiKey" placeholder="sk-..."/></div>
+    <div class="field"><label class="lbl">เปลี่ยน Admin Password</label><input type="password" id="cfgAdminPwd" placeholder="ว่างไว้ = ไม่เปลี่ยน"/></div>
+  </div>
+  <button class="btn btn-primary" onclick="saveSettings()">💾 บันทึกการตั้งค่า</button>
+</div>
+
+<div class="card">
+  <div class="ctitle">➕ สร้าง Key ใหม่</div>
+  <div class="g3">
+    <div class="field"><label class="lbl">ชื่อผู้ใช้ / ทีม</label><input type="text" id="newName" placeholder="เช่น: คุณแนน, ทีม A"/></div>
+    <div class="field"><label class="lbl">จำนวน Token เริ่มต้น</label><input type="number" id="newTokens" value="10" min="1" max="9999"/></div>
+    <div class="field"><label class="lbl">วันหมดอายุ (ว่าง = ไม่หมด)</label><input type="date" id="newExpiry"/></div>
+  </div>
+  <div class="field"><label class="lbl">หมายเหตุ</label><input type="text" id="newNote" placeholder="เช่น: แคมเปญ Q3"/></div>
+  <button class="btn btn-primary" onclick="createKey()">✨ สร้าง Key</button>
+</div>
+
+<div class="card">
+  <div class="ctitle">🔑 Keys ทั้งหมด</div>
+  <div class="search-row">
+    <input type="text" id="searchQ" placeholder="ค้นหาชื่อ..." oninput="renderTable()"/>
+    <button class="btn btn-sm" style="background:#f0eeea;" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn btn-sm btn-primary" onclick="loadKeys()">🔄 รีเฟรช</button>
+  </div>
+  <div style="overflow-x:auto;"><table class="tbl"><thead><tr><th>ชื่อ/ทีม</th><th>Key</th><th>Token คงเหลือ</th><th>ใช้ไป</th><th>สถานะ</th><th>หมดอายุ</th><th>หมายเหตุ</th><th>จัดการ</th></tr></thead><tbody id="keyTbody"><tr><td colspan="8" class="loading">กำลังโหลด...</td></tr></tbody></table></div>
+</div>
+
+<div class="card">
+  <div class="ctitle">📊 Log การใช้งาน (50 ล่าสุด)</div>
+  <table class="tbl"><thead><tr><th>เวลา</th><th>ผู้ใช้</th><th>Action</th><th>Token ใช้</th></tr></thead><tbody id="logTbody"><tr><td colspan="4" class="loading">กำลังโหลด...</td></tr></tbody></table>
+</div>
+
+</div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">✏️ แก้ไข Key</div>
+    <input type="hidden" id="editId"/>
+    <input type="hidden" id="editCurrentRemaining"/>
+    <div class="field"><label class="lbl">ชื่อ</label><input type="text" id="editName"/></div>
+    <div class="g2">
+      <div class="field"><label class="lbl">เพิ่ม Token (+) หรือหัก (-)</label><input type="number" id="editAddTokens" placeholder="เช่น 5 หรือ -3"/></div>
+      <div class="field"><label class="lbl">วันหมดอายุ</label><input type="date" id="editExpiry"/></div>
+    </div>
+    <div class="field"><label class="lbl">สถานะ</label><select id="editStatus"><option value="active">✅ Active</option><option value="suspended">🚫 Suspended</option></select></div>
+    <div class="field"><label class="lbl">หมายเหตุ</label><input type="text" id="editNote"/></div>
+    <div class="modal-footer">
+      <button class="btn" style="background:#f0eeea;" onclick="closeModal('editModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveEdit()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal New Key -->
+<div class="modal-overlay" id="newKeyModal">
+  <div class="modal">
+    <div class="modal-title">✅ สร้าง Key สำเร็จ!</div>
+    <div class="lbl" style="margin-bottom:6px;">Key ใหม่ (คัดลอกส่งให้ผู้ใช้):</div>
+    <div style="display:flex;align-items:center;gap:4px;">
+      <div class="key-display" id="newKeyDisplay" style="flex:1;"></div>
+      <button class="copy-btn" onclick="copyKey()">📋 คัดลอก</button>
+    </div>
+    <div style="font-size:12px;color:#aaa;margin-top:8px;">⚠️ บันทึกไว้ด้วย — แสดงครั้งเดียว</div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeModal('newKeyModal')">ตกลง</button></div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL='https://hmymbroiaadkgflplori.supabase.co';
+const SUPA_KEY='sb_publishable_pnm7wZqrri1Z6Oz3FWvrEw_yb9p5_Ao';
+let allKeys=[];
+let adminVerified=false;
+
+// ── Supabase fetch helper ─────────────────────────────────────────────
+async function sb(method, path, body){
+  const res=await fetch(SUPA_URL+'/rest/v1/'+path,{
+    method,
+    headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=representation'},
+    body:body?JSON.stringify(body):undefined
+  });
+  if(!res.ok){const t=await res.text();throw new Error('Supabase '+res.status+': '+t.slice(0,100));}
+  const t=await res.text();return t?JSON.parse(t):null;
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────
+async function adminLogin(){
+  const pwd=document.getElementById('adminPwd').value;
+  if(!pwd){return;}
+  try{
+    const rows=await sb('GET','settings?id=eq.main&select=admin_password');
+    const correct=rows&&rows[0]&&rows[0].admin_password;
+    if(pwd===correct){
+      adminVerified=true;
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('mainScreen').style.display='block';
+      loadAll();
+    } else {
+      document.getElementById('loginErr').style.display='block';
+    }
+  }catch(e){alert('เชื่อมต่อ Supabase ไม่ได้: '+e.message);}
+}
+function adminLogout(){location.reload();}
+
+async function loadAll(){ await Promise.all([loadSettings(),loadKeys(),loadLogs()]); renderStats(); }
+
+// ── Settings ──────────────────────────────────────────────────────────
+async function loadSettings(){
+  const rows=await sb('GET','settings?id=eq.main&select=ve_api_key');
+  if(rows&&rows[0]) document.getElementById('cfgApiKey').value=rows[0].ve_api_key||'';
+}
+async function saveSettings(){
+  const apiKey=document.getElementById('cfgApiKey').value.trim();
+  const newPwd=document.getElementById('cfgAdminPwd').value.trim();
+  const upd={ve_api_key:apiKey,updated_at:new Date().toISOString()};
+  if(newPwd) upd.admin_password=newPwd;
+  await sb('PATCH','settings?id=eq.main',upd);
+  alert('บันทึกแล้ว');
+  document.getElementById('cfgAdminPwd').value='';
+}
+
+// ── Keys ──────────────────────────────────────────────────────────────
+async function loadKeys(){
+  allKeys=await sb('GET','keys?order=created_at.desc')||[];
+  renderTable(); renderStats();
+}
+
+function renderTable(){
+  const q=(document.getElementById('searchQ').value||'').toLowerCase();
+  const filtered=q?allKeys.filter(k=>k.name.toLowerCase().includes(q)||k.key.toLowerCase().includes(q)):allKeys;
+  const tbody=document.getElementById('keyTbody');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">ยังไม่มี Key</td></tr>';return;}
+  tbody.innerHTML=filtered.map(k=>{
+    const pct=k.initial_tokens>0?Math.round((k.remaining/k.initial_tokens)*100):0;
+    const expired=k.expiry&&new Date(k.expiry)<new Date();
+    const st=expired?'expired':k.status;
+    const badge={active:'<span class="badge badge-green">✅ Active</span>',suspended:'<span class="badge badge-red">🚫 Suspended</span>',expired:'<span class="badge badge-gray">⏰ หมดอายุ</span>'}[st]||'';
+    return `<tr>
+      <td><b>${k.name}</b></td>
+      <td><span style="font-family:monospace;font-size:11px;">${k.key.slice(0,14)}...</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${k.key}').then(()=>alert('คัดลอกแล้ว'))">📋</button></td>
+      <td><div style="font-weight:600;">${k.remaining}/${k.initial_tokens}</div><div class="token-bar"><div class="token-fill" style="width:${pct}%"></div></div></td>
+      <td>${k.used||0} รูป</td>
+      <td>${badge}</td>
+      <td>${k.expiry||'ไม่หมด'}</td>
+      <td style="font-size:12px;color:#999;">${k.note||'-'}</td>
+      <td>
+        <button class="btn btn-sm btn-primary" onclick="openEdit('${k.id}')">✏️</button>
+        <button class="btn btn-sm btn-danger" style="margin-left:4px;" onclick="deleteKey('${k.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderStats(){
+  const total=allKeys.length;
+  const active=allKeys.filter(k=>k.status==='active').length;
+  const totalGiven=allKeys.reduce((a,k)=>a+(k.initial_tokens||0),0);
+  const totalUsed=allKeys.reduce((a,k)=>a+(k.used||0),0);
+  document.getElementById('statGrid').innerHTML=`
+    <div class="stat-card hi"><div class="stat-val">${total}</div><div class="stat-lbl">Keys ทั้งหมด</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#145a32;">${active}</div><div class="stat-lbl">Active</div></div>
+    <div class="stat-card"><div class="stat-val">${totalGiven}</div><div class="stat-lbl">Token แจกรวม</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#534AB7;">${totalUsed}</div><div class="stat-lbl">Token ใช้ไปแล้ว</div></div>`;
+}
+
+function genKey(){let k='KCE-';const c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';for(let i=0;i<28;i++)k+=c[Math.floor(Math.random()*c.length)];return k;}
+
+async function createKey(){
+  const name=document.getElementById('newName').value.trim();
+  const tokens=parseInt(document.getElementById('newTokens').value)||10;
+  const expiry=document.getElementById('newExpiry').value||null;
+  const note=document.getElementById('newNote').value.trim();
+  if(!name){alert('กรุณาใส่ชื่อ');return;}
+  const key=genKey();
+  await sb('POST','keys',[{key,name,initial_tokens:tokens,remaining:tokens,used:0,status:'active',expiry,note}]);
+  document.getElementById('newKeyDisplay').textContent=key;
+  document.getElementById('newName').value='';document.getElementById('newNote').value='';
+  openModal('newKeyModal');
+  await loadKeys();
+}
+
+async function deleteKey(id){
+  if(!confirm('ลบ Key นี้?')) return;
+  await sb('DELETE','keys?id=eq.'+id);
+  await loadKeys();
+}
+
+function openEdit(id){
+  const k=allKeys.find(x=>x.id===id);if(!k) return;
+  document.getElementById('editId').value=id;
+  document.getElementById('editCurrentRemaining').value=k.remaining;
+  document.getElementById('editName').value=k.name;
+  document.getElementById('editAddTokens').value='';
+  document.getElementById('editExpiry').value=k.expiry||'';
+  document.getElementById('editStatus').value=k.status||'active';
+  document.getElementById('editNote').value=k.note||'';
+  openModal('editModal');
+}
+
+async function saveEdit(){
+  const id=document.getElementById('editId').value;
+  const k=allKeys.find(x=>x.id===id);if(!k) return;
+  const add=parseInt(document.getElementById('editAddTokens').value)||0;
+  const newRemaining=Math.max(0,(k.remaining||0)+add);
+  const newInitial=add>0?(k.initial_tokens||0)+add:(k.initial_tokens||0);
+  const upd={name:document.getElementById('editName').value.trim()||k.name,remaining:newRemaining,initial_tokens:newInitial,expiry:document.getElementById('editExpiry').value||null,status:document.getElementById('editStatus').value,note:document.getElementById('editNote').value.trim(),updated_at:new Date().toISOString()};
+  await sb('PATCH','keys?id=eq.'+id,upd);
+  if(add!==0) await sb('POST','usage_logs',[{key_id:id,key_name:k.name,action:add>0?'Admin เติม Token':'Admin หัก Token',tokens_used:Math.abs(add)}]);
+  closeModal('editModal');
+  await loadKeys();
+}
+
+// ── Logs ──────────────────────────────────────────────────────────────
+async function loadLogs(){
+  const logs=await sb('GET','usage_logs?order=created_at.desc&limit=50')||[];
+  const tbody=document.getElementById('logTbody');
+  if(!logs.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#aaa;padding:16px;">ยังไม่มี log</td></tr>';return;}
+  tbody.innerHTML=logs.map(l=>`<tr>
+    <td style="font-size:12px;">${new Date(l.created_at).toLocaleString('th-TH')}</td>
+    <td><b>${l.key_name||'-'}</b></td>
+    <td>${l.action||'-'}</td>
+    <td><span class="badge badge-blue">-${l.tokens_used} token</span></td>
+  </tr>`).join('');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function copyKey(){navigator.clipboard.writeText(document.getElementById('newKeyDisplay').textContent).then(()=>alert('คัดลอกแล้ว'));}
+function exportCSV(){
+  const rows=[['ชื่อ','Key','Token เริ่มต้น','คงเหลือ','ใช้ไป','สถานะ','หมดอายุ','หมายเหตุ']];
+  allKeys.forEach(k=>rows.push([k.name,k.key,k.initial_tokens,k.remaining,k.used||0,k.status,k.expiry||'',k.note||'']));
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='kook_keys.csv';a.click();
+}
+</script>
+</body>
+</html>

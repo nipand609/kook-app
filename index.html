@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kook Content Engine V2</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh;}
+.topbar{background:#fff;border-bottom:1px solid #e8e6e0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-size:16px;font-weight:600;}.logo span{color:#534AB7;}
+.vbadge{font-size:11px;padding:3px 9px;border-radius:99px;background:#EEEDFE;color:#3C3489;font-weight:500;}
+.wrap{max-width:780px;margin:0 auto;padding:20px 16px 80px;}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:20px;margin-bottom:14px;}
+.ctitle{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;}
+.lbl{font-size:13px;color:#555;display:block;margin-bottom:5px;}
+input,textarea,select{width:100%;padding:9px 12px;font-size:14px;font-family:'Sarabun',sans-serif;border:1px solid #ddd;border-radius:8px;outline:none;transition:border .15s;}
+input:focus,textarea:focus,select:focus{border-color:#534AB7;box-shadow:0 0 0 3px #EEEDFE44;}
+textarea{resize:vertical;line-height:1.6;}
+.field{margin-bottom:12px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.login-wrap{max-width:380px;margin:80px auto;padding:0 16px;}
+.login-card{background:#fff;border:1px solid #e8e6e0;border-radius:16px;padding:32px;}
+.login-logo{font-size:22px;font-weight:600;text-align:center;margin-bottom:6px;}.login-logo span{color:#534AB7;}
+.login-sub{font-size:13px;color:#aaa;text-align:center;margin-bottom:20px;}
+.login-err{color:#c0392b;font-size:12px;text-align:center;margin-top:8px;display:none;}
+.token-bar-wrap{height:10px;background:#f0eeea;border-radius:99px;overflow:hidden;flex:1;}
+.token-fill{height:100%;border-radius:99px;background:#534AB7;transition:width .4s;}
+.token-warn{font-size:12px;color:#856404;background:#fff3cd;padding:6px 12px;border-radius:8px;margin-top:8px;display:none;}
+.typegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.tbtn{border:2px solid #e8e6e0;border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;background:#fff;transition:all .15s;}
+.tbtn:hover{border-color:#AFA9EC;background:#EEEDFE22;}
+.tbtn.on{border-color:#534AB7;background:#EEEDFE;}
+.tbtn .ico{font-size:22px;margin-bottom:4px;}
+.tbtn p{font-size:12px;font-weight:600;}.tbtn small{font-size:10px;color:#999;}
+.upzone{border:2px dashed #ccc;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:#fafafa;}
+.upzone:hover,.upzone.drag{border-color:#534AB7;background:#EEEDFE22;}
+.upzone .uico{font-size:28px;opacity:.35;margin-bottom:4px;}
+.upzone p{font-size:13px;color:#666;}.upzone small{font-size:11px;color:#aaa;}
+.thumb-strip{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.thumb-item{position:relative;width:76px;height:76px;border-radius:8px;overflow:hidden;border:2px solid #e8e6e0;}
+.thumb-item img{width:100%;height:100%;object-fit:cover;}
+.thumb-item .del-btn{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;}
+.thumb-item .thumb-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:9px;padding:2px 3px;text-align:center;}
+.upload-count{font-size:12px;color:#aaa;margin-top:6px;}
+.hint{font-size:12px;padding:8px 12px;border-radius:8px;}
+.hp{background:#EEEDFE;color:#3C3489;border:1px solid #ddd8f8;}
+.hb{background:#EBF5FF;color:#1a5fa8;border:1px solid #c3ddf8;}
+.postersec{border:1px solid #ddd8f8;border-radius:10px;padding:14px;margin-top:10px;background:#EEEDFE08;}
+.postitle{font-size:12px;font-weight:600;color:#534AB7;margin-bottom:10px;}
+.divider{height:1px;background:#f0eeea;margin:14px 0;}
+.size-btns{display:flex;gap:6px;}
+.szb{padding:6px 14px;font-size:12px;font-weight:500;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fff;color:#666;transition:all .15s;}
+.szb.on{border-color:#534AB7;background:#EEEDFE;color:#3C3489;}
+.tog-group{display:flex;gap:6px;flex-wrap:wrap;}
+.togbtn{padding:7px 13px;font-size:12px;font-weight:500;border:1.5px solid #ddd;border-radius:8px;cursor:pointer;background:#fff;color:#666;font-family:'Sarabun',sans-serif;}
+.togbtn.on{border-color:#534AB7;background:#EEEDFE;color:#3C3489;}
+.style-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.stylebtn{border:1.5px solid #e8e6e0;border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;background:#fff;font-family:'Sarabun',sans-serif;transition:all .15s;}
+.stylebtn.on{border-color:#534AB7;background:#EEEDFE;}
+.stico{font-size:18px;margin-bottom:3px;}.stlbl{font-size:13px;font-weight:600;color:#1a1a1a;}.stsub{font-size:11px;color:#999;margin-top:2px;line-height:1.4;}
+.runbtn{width:100%;padding:14px;font-size:15px;font-weight:600;background:#534AB7;color:#fff;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.runbtn:hover{background:#3C3489;}.runbtn:disabled{opacity:.4;cursor:not-allowed;}
+.pstep{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f0eeea;}
+.pstep:last-child{border:none;}
+.pico{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:600;}
+.sw{background:#f0eeea;color:#bbb;}.sr{background:#fff3cd;color:#856404;animation:pu 1s infinite;}
+.sd{background:#d1f0e0;color:#145a32;}.se{background:#fde8e8;color:#8b1a1a;}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.4}}
+.plbl{font-size:14px;color:#1a1a1a;font-weight:500;}
+.psub{font-size:12px;color:#aaa;margin-top:2px;}
+.logbox{font-size:11px;font-family:monospace;color:#555;background:#f8f7f5;border-radius:8px;padding:10px;max-height:120px;overflow-y:auto;margin-top:10px;white-space:pre-wrap;line-height:1.6;display:none;}
+.tabrow{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid #e8e6e0;padding-bottom:10px;}
+.tabt{padding:6px 14px;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #e8e6e0;background:#f5f4f0;color:#666;}
+.tabt.on{background:#534AB7;color:#fff;border-color:#534AB7;}
+.tbadge{font-size:11px;padding:1px 7px;border-radius:99px;font-weight:600;margin-left:4px;}
+.tbg{background:#d1f0e0;color:#145a32;}
+.scene-block{background:#fff;border:1px solid #e8e6e0;border-radius:10px;margin-bottom:12px;overflow:hidden;}
+.scene-hdr{background:#f5f4f0;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.scene-num{font-size:11px;font-weight:600;color:#534AB7;background:#EEEDFE;padding:2px 9px;border-radius:99px;flex-shrink:0;}
+.scene-ttl{font-size:14px;font-weight:600;}
+.scene-body{padding:14px;}
+.sec-lbl{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;margin-top:12px;}
+.sec-lbl:first-child{margin-top:0;}
+.prompt-box{font-size:12px;color:#333;line-height:1.7;background:#f8f7f5;border-radius:6px;padding:8px 10px;font-family:monospace;white-space:pre-wrap;word-break:break-word;}
+.copy-btn{margin-top:6px;padding:5px 12px;font-size:12px;font-weight:500;background:#fff;border:1px solid #AFA9EC;border-radius:6px;cursor:pointer;color:#534AB7;}
+.copy-btn.copied{background:#d1f0e0;color:#145a32;border-color:#a3d9be;}
+.imgout{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+.imgcard{border:1px solid #e8e6e0;border-radius:10px;overflow:hidden;background:#fff;}
+.imgcard img{width:100%;display:block;object-fit:cover;}
+.ilab{font-size:11px;color:#666;padding:5px 9px;line-height:1.4;}
+.iact{padding:0 9px 8px;display:flex;gap:6px;}
+.iabtn{flex:1;padding:5px 0;font-size:11px;font-weight:500;border:1px solid #AFA9EC;border-radius:6px;cursor:pointer;background:#fff;color:#534AB7;text-align:center;text-decoration:none;display:block;}
+.iabtn:hover{background:#EEEDFE;}
+.analysis-box{margin-top:10px;background:#f8f7f5;border-radius:8px;padding:10px 12px;display:none;}
+.analysis-title{font-size:11px;font-weight:600;color:#534AB7;margin-bottom:6px;}
+.analysis-item{font-size:12px;color:#444;padding:4px 0;border-bottom:1px solid #f0eeea;display:flex;gap:8px;}
+.analysis-item:last-child{border:none;}
+.a-num{width:22px;height:22px;border-radius:50%;background:#EEEDFE;color:#534AB7;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">🎬 Kook <span>Content Engine</span></div>
+    <div class="login-sub">V2 — Image Creator</div>
+    <div class="field">
+      <label class="lbl">Key การใช้งาน</label>
+      <input type="text" id="loginKey" placeholder="KCE-XXXXXXXXXXXX..." onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="runbtn" onclick="doLogin()">🔑 เข้าใช้งาน</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+</div>
+
+<!-- MAIN -->
+<div id="mainScreen" style="display:none;">
+<div class="topbar">
+  <div class="logo">🎬 Kook Content Engine <span>V2</span></div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="text-align:right;">
+      <div style="font-size:12px;color:#555;" id="userLabel"></div>
+      <div style="font-size:12px;font-weight:600;color:#534AB7;" id="tokenLabel"></div>
+    </div>
+    <button style="background:none;border:1px solid #ddd;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:12px;" onclick="doLogout()">ออก</button>
+  </div>
+</div>
+<div class="wrap">
+
+<div class="card" style="padding:14px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <div class="lbl" style="margin:0;">🪙 Token คงเหลือ</div>
+    <div style="font-size:11px;color:#aaa;">1 token = 1 รูป</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="token-bar-wrap"><div class="token-fill" id="tokenBar" style="width:0%"></div></div>
+    <div style="font-size:13px;font-weight:600;white-space:nowrap;" id="tokenCount">0 / 0</div>
+  </div>
+  <div class="token-warn" id="tokenWarn">⚠️ Token เหลือน้อย — กรุณาติดต่อ Admin</div>
+</div>
+
+<div class="card">
+  <div class="ctitle">📋 ประเภทงาน</div>
+  <div class="typegrid">
+    <div class="tbtn on" id="t1" onclick="setType(1)"><div class="ico">👶</div><p>รีวิวชุดเด็ก</p><small>Type 1</small></div>
+    <div class="tbtn" id="t2" onclick="setType(2)"><div class="ico">👗</div><p>รีวิวสาวอวบ</p><small>Type 2</small></div>
+    <div class="tbtn" id="t3" onclick="setType(3)"><div class="ico">⭐</div><p>รีวิวทั่วไป</p><small>Type 3</small></div>
+  </div>
+  <div class="hint hp" id="typeHint"></div>
+</div>
+
+<div class="card">
+  <div class="ctitle">📦 รูปสินค้า (1-10 รูป)</div>
+  <div class="hint hb" style="margin-bottom:10px;font-size:12px;">AI วิเคราะห์ทุกรูปก่อน เลือกใช้รูปที่เหมาะสมแต่ละซีน</div>
+  <div class="upzone" id="upProd" onclick="document.getElementById('fProd').click()">
+    <div class="uico">🛍</div><p>คลิกหรือลากรูปสินค้ามาวาง</p><small>สูงสุด 10 รูป</small>
+  </div>
+  <input type="file" id="fProd" accept="image/*" multiple style="display:none" onchange="handleFiles(event,'prod')"/>
+  <div class="thumb-strip" id="prodStrip"></div>
+  <div class="upload-count" id="prodCount"></div>
+  <div class="analysis-box" id="prodAnalysis"><div class="analysis-title">🔍 วิเคราะห์สินค้า</div><div id="prodAnalysisContent"></div></div>
+</div>
+
+<div class="card">
+  <div class="ctitle">🧑 รูปตัวละคร (1-5 รูป)</div>
+  <div class="hint hb" style="margin-bottom:10px;font-size:12px;">AI คง Identity ตัวละครทุกซีน</div>
+  <div class="upzone" id="upChar" onclick="document.getElementById('fChar').click()">
+    <div class="uico">🧑</div><p>คลิกหรือลากรูปตัวละครมาวาง</p><small>สูงสุด 5 รูป</small>
+  </div>
+  <input type="file" id="fChar" accept="image/*" multiple style="display:none" onchange="handleFiles(event,'char')"/>
+  <div class="thumb-strip" id="charStrip"></div>
+  <div class="upload-count" id="charCount"></div>
+  <div class="analysis-box" id="charAnalysis"><div class="analysis-title">🔍 วิเคราะห์ตัวละคร</div><div id="charAnalysisContent"></div></div>
+</div>
+
+<div class="card">
+  <div class="ctitle">✏️ รายละเอียด</div>
+  <div class="field"><label class="lbl">รายละเอียดสินค้า / Theme *</label><textarea id="desc" rows="3" placeholder="เช่น: ครีมบำรุงผิว กระปุกแดง กลูต้า+วิตซี บรรยากาศสดใส..."></textarea></div>
+  <div class="g2">
+    <div class="field"><label class="lbl">สไตล์ภาพ</label>
+      <select id="imgStyle">
+        <option value="cinematic commercial">Cinematic Commercial</option>
+        <option value="lifestyle photography">Lifestyle Photography</option>
+        <option value="TikTok viral style">TikTok Viral</option>
+        <option value="Shopee product review">Shopee Review</option>
+        <option value="minimal clean">Minimal Clean</option>
+      </select>
+    </div>
+    <div class="field"><label class="lbl">แพลตฟอร์ม</label>
+      <select id="platform">
+        <option value="TikTok">TikTok</option><option value="Shopee">Shopee</option>
+        <option value="Instagram Reels">Instagram Reels</option><option value="YouTube Shorts">YouTube Shorts</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="field"><label class="lbl">จำนวนซีน (สูงสุด 10)</label><input type="number" id="sceneCount" value="3" min="1" max="10" oninput="updateCost()"/></div>
+    <div class="field"><label class="lbl">Voice Style</label>
+      <select id="voiceStyle">
+        <option value="Warm Thai female voice, soft and friendly">อบอุ่น หญิง ไทย</option>
+        <option value="Energetic Thai female voice, upbeat">สดใส พลังงานสูง</option>
+        <option value="Deep Thai male voice, trustworthy">ผู้ชาย น่าเชื่อถือ</option>
+        <option value="Gentle Thai female voice, luxury tone">หรูหรา นุ่มนวล</option>
+        <option value="No dialogue, sound design only">Sound Design เท่านั้น</option>
+      </select>
+    </div>
+  </div>
+  <div class="field"><label class="lbl">ขนาดรูป</label>
+    <div class="size-btns">
+      <button class="szb on" id="sz916" onclick="setSize('9:16','1024x1792')">9:16 แนวตั้ง</button>
+      <button class="szb" id="sz169" onclick="setSize('16:9','1792x1024')">16:9 แนวนอน</button>
+      <button class="szb" id="sz11" onclick="setSize('1:1','1024x1024')">1:1 สี่เหลี่ยม</button>
+    </div>
+  </div>
+  <div class="field"><label class="lbl">รายละเอียดเพิ่มเติม</label><textarea id="extra" rows="2" placeholder="เช่น: เน้นความนุ่ม เด็กวิ่งเล่น ฯลฯ"></textarea></div>
+  <div class="divider"></div>
+  <div class="postersec">
+    <div class="postitle">🎨 ตั้งค่า Poster</div>
+    <div class="hint hb" style="margin-bottom:10px;font-size:12px;">ถ้าไม่กรอก AI จะสร้างให้อัตโนมัติ</div>
+    <div class="g2" style="margin-bottom:10px;">
+      <div><label class="lbl">ตัวหนังสือ</label>
+        <div class="tog-group" id="togText">
+          <button class="togbtn on" data-val="yes" onclick="setTog('togText',this)">✍️ มี</button>
+          <button class="togbtn" data-val="no" onclick="setTog('togText',this)">🚫 ไม่มี</button>
+        </div>
+      </div>
+      <div><label class="lbl">คนในภาพ</label>
+        <div class="tog-group" id="togPerson">
+          <button class="togbtn on" data-val="yes" onclick="setTog('togPerson',this)">🧑 มีคน</button>
+          <button class="togbtn" data-val="no" onclick="setTog('togPerson',this)">📦 Product Only</button>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label class="lbl">สไตล์ Poster</label>
+      <div class="style-grid">
+        <button class="stylebtn on" data-val="cinematic_commercial" onclick="setPStyle(this)"><div class="stico">🎬</div><div class="stlbl">Cinematic Commercial</div><div class="stsub">แสงดราม่า คอนทราสต์สูง</div></button>
+        <button class="stylebtn" data-val="soft_lifestyle" onclick="setPStyle(this)"><div class="stico">☀️</div><div class="stlbl">Soft Lifestyle</div><div class="stsub">แสงนุ่ม โทนพาสเทล</div></button>
+        <button class="stylebtn" data-val="bold_graphic" onclick="setPStyle(this)"><div class="stico">⚡</div><div class="stlbl">Bold Graphic</div><div class="stsub">สีจัด เด่น ไวรัล</div></button>
+        <button class="stylebtn" data-val="luxury_minimal" onclick="setPStyle(this)"><div class="stico">💎</div><div class="stlbl">Luxury Minimal</div><div class="stsub">Negative space หรูหรา</div></button>
+      </div>
+    </div>
+    <div class="field"><label class="lbl">Hook หลัก</label><input type="text" id="posterHook" placeholder="AI สร้างให้ถ้าไม่กรอก"/></div>
+    <div class="g2">
+      <div class="field"><label class="lbl">ชื่อสินค้า</label><input type="text" id="posterTitle" placeholder="เช่น: Kook Kids"/></div>
+      <div class="field"><label class="lbl">Tagline</label><input type="text" id="posterSub" placeholder="เช่น: ผ้าฝ้าย 100%"/></div>
+    </div>
+    <div class="field"><label class="lbl">ฉากโปสเตอร์</label><textarea id="posterScene" rows="2" placeholder="เช่น: ห้องนอนเด็กอบอุ่น แสงสีทอง"></textarea></div>
+  </div>
+</div>
+
+<div class="card" style="padding:12px 16px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-size:13px;color:#555;">💰 Token ที่จะใช้ครั้งนี้</span>
+    <span style="font-weight:600;color:#534AB7;font-size:15px;" id="costNum">— Token</span>
+  </div>
+  <div style="font-size:11px;color:#aaa;margin-top:3px;" id="costBreak"></div>
+</div>
+
+<button class="runbtn" id="runBtn" onclick="startEngine()">✨ สร้าง Content</button>
+
+<div class="card" id="progCard" style="display:none;margin-top:14px;">
+  <div class="ctitle">⏳ ความคืบหน้า</div>
+  <div class="pstep"><div class="pico sw" id="pi0">0</div><div><div class="plbl">วิเคราะห์รูปเบื้องหลัง</div><div class="psub" id="ps0">รอ</div></div></div>
+  <div class="pstep"><div class="pico sw" id="pi1">1</div><div><div class="plbl">สร้างสคริปต์ gpt-5.2</div><div class="psub" id="ps1">รอ</div></div></div>
+  <div class="pstep"><div class="pico sw" id="pi2">2</div><div><div class="plbl">สร้างรูปทุกซีน (gpt-image-2)</div><div class="psub" id="ps2">รอ</div></div></div>
+  <div class="pstep"><div class="pico sw" id="pi3">3</div><div><div class="plbl">สร้าง Poster</div><div class="psub" id="ps3">รอ</div></div></div>
+  <div class="logbox" id="logBox"></div>
+</div>
+
+<div class="card" id="outCard" style="display:none;margin-top:14px;">
+  <div class="tabrow">
+    <div class="tabt on" onclick="showTab('script')" id="tabScript">สคริปต์ & Prompt</div>
+    <div class="tabt" onclick="showTab('images')" id="tabImages">รูปภาพ<span class="tbadge tbg" id="imgBadge">0</span></div>
+  </div>
+  <div id="panelScript"></div>
+  <div id="panelImages" style="display:none;"><div class="imgout" id="imgGrid"></div></div>
+</div>
+
+</div>
+</div>
+
+<script>
+const SUPA_URL='https://hmymbroiaadkgflplori.supabase.co';
+const SUPA_KEY='sb_publishable_pnm7wZqrri1Z6Oz3FWvrEw_yb9p5_Ao';
+const VE_BASE='https://api.vectorengine.ai';
+
+let currentUser=null;
+let prodImages=[], charImages=[], analysisResult=null;
+let selType=1, selSize='1024x1792', selRatio='9:16';
+let posterText='yes', posterPerson='yes', posterStyle='cinematic_commercial';
+
+const typeHints={1:'Type 1: เด็กเป็นตัวเอก · มีผู้ปกครองอย่างน้อย 2 ซีน',2:'Type 2: นางแบบสาวอวบ · คงรูปร่างทุกซีน',3:'Type 3: รีวิวทั่วไป'};
+const typeAutoAdd={1:'Include parent/guardian in at least 2 scenes. Family-friendly.',2:'Plus-size female model only. Consistent curvy body.',3:''};
+const RH='Real human appearance, realistic skin texture, visible pores, natural imperfections, non-AI face, realistic hands, documentary realism.';
+const posterStyles={
+  cinematic_commercial:'Ultra realistic cinematic commercial photography. Dramatic lighting, high contrast, deep shadows, premium feel.',
+  soft_lifestyle:'Soft lifestyle photography. Natural warm pastel tones, gentle diffused light, airy clean background, cozy atmosphere.',
+  bold_graphic:'Bold graphic poster. Vibrant saturated colors, strong composition, TikTok viral social media aesthetic, energetic layout.',
+  luxury_minimal:'Luxury minimal photography. Pure clean background, generous negative space, elegant sparse composition, high-fashion editorial.'
+};
+
+// ── Supabase ──────────────────────────────────────────────────────────
+async function sb(method, path, body){
+  const res=await fetch(SUPA_URL+'/rest/v1/'+path,{method,headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=representation'},body:body?JSON.stringify(body):undefined});
+  if(!res.ok){const t=await res.text();throw new Error('DB '+res.status+': '+t.slice(0,80));}
+  const t=await res.text();return t?JSON.parse(t):null;
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────
+async function doLogin(){
+  const inputKey=document.getElementById('loginKey').value.trim();
+  if(!inputKey){showErr('กรุณาใส่ Key');return;}
+  showErr('');
+  document.getElementById('runBtn').textContent='⏳ กำลังตรวจสอบ...';
+  try{
+    const rows=await sb('GET','keys?key=eq.'+encodeURIComponent(inputKey)+'&select=*');
+    const k=rows&&rows[0];
+    if(!k){showErr('Key ไม่ถูกต้อง');return;}
+    if(k.status==='suspended'){showErr('Key นี้ถูกระงับ — กรุณาติดต่อ Admin');return;}
+    if(k.expiry&&new Date(k.expiry)<new Date()){showErr('Key หมดอายุแล้ว — กรุณาติดต่อ Admin');return;}
+    if(k.remaining<=0){showErr('Token หมดแล้ว — กรุณาติดต่อ Admin เพื่อเติม Token');return;}
+    currentUser=k;
+    localStorage.setItem('kook_v2_session',k.id+'|'+k.key);
+    showMain();
+  }catch(e){showErr('เชื่อมต่อ server ไม่ได้: '+e.message);}
+  finally{document.getElementById('runBtn').textContent='🔑 เข้าใช้งาน';}
+}
+
+function showErr(msg){const el=document.getElementById('loginErr');el.textContent=msg;el.style.display=msg?'block':'none';}
+
+function doLogout(){
+  localStorage.removeItem('kook_v2_session');
+  currentUser=null;
+  document.getElementById('mainScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='block';
+}
+
+function showMain(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainScreen').style.display='block';
+  refreshToken();
+  setType(1);updateCost();
+}
+
+function refreshToken(){
+  if(!currentUser) return;
+  const pct=currentUser.initial_tokens>0?Math.round((currentUser.remaining/currentUser.initial_tokens)*100):0;
+  document.getElementById('userLabel').textContent='👤 '+currentUser.name;
+  document.getElementById('tokenLabel').textContent=currentUser.remaining+' Token คงเหลือ';
+  document.getElementById('tokenCount').textContent=currentUser.remaining+' / '+currentUser.initial_tokens;
+  document.getElementById('tokenBar').style.width=pct+'%';
+  document.getElementById('tokenBar').style.background=pct<=20?'#e74c3c':pct<=50?'#f5a623':'#534AB7';
+  document.getElementById('tokenWarn').style.display=currentUser.remaining<=3?'block':'none';
+}
+
+async function deductToken(n){
+  // re-fetch key สดเพื่อป้องกันการ deduct ซ้ำ
+  const rows=await sb('GET','keys?id=eq.'+currentUser.id);
+  const fresh=rows&&rows[0];
+  if(!fresh||fresh.remaining<n){alert('Token ไม่พอ — กรุณาติดต่อ Admin');return false;}
+  await sb('PATCH','keys?id=eq.'+currentUser.id,{remaining:fresh.remaining-n,used:(fresh.used||0)+n,updated_at:new Date().toISOString()});
+  await sb('POST','usage_logs',[{key_id:currentUser.id,key_name:currentUser.name,action:'สร้างรูป '+n+' รูป',tokens_used:n}]);
+  currentUser={...fresh,remaining:fresh.remaining-n,used:(fresh.used||0)+n};
+  refreshToken();
+  return true;
+}
+
+async function getVeApiKey(){
+  const rows=await sb('GET','settings?id=eq.main&select=ve_api_key');
+  return rows&&rows[0]&&rows[0].ve_api_key||'';
+}
+
+// ── UI Controls ───────────────────────────────────────────────────────
+function setType(n){selType=n;[1,2,3].forEach(i=>document.getElementById('t'+i).className='tbtn'+(i===n?' on':''));document.getElementById('typeHint').textContent=typeHints[n];}
+function setSize(r,s){selRatio=r;selSize=s;['sz916','sz169','sz11'].forEach(id=>document.getElementById(id).classList.remove('on'));document.getElementById({'9:16':'sz916','16:9':'sz169','1:1':'sz11'}[r]).classList.add('on');}
+function setTog(g,btn){document.querySelectorAll('#'+g+' .togbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');if(g==='togText')posterText=btn.dataset.val;else posterPerson=btn.dataset.val;}
+function setPStyle(btn){document.querySelectorAll('.stylebtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');posterStyle=btn.dataset.val;}
+function updateCost(){
+  if(!currentUser) return;
+  const sc=Math.min(10,Math.max(1,parseInt(document.getElementById('sceneCount')?.value)||3));
+  const total=sc+1;
+  document.getElementById('costNum').textContent=total+' Token';
+  document.getElementById('costBreak').textContent=sc+' ซีน + 1 Poster = '+total+' Token (Token คงเหลือ '+currentUser.remaining+')';
+  document.getElementById('costNum').style.color=currentUser.remaining>=total?'#534AB7':'#c0392b';
+}
+
+// ── File Upload ───────────────────────────────────────────────────────
+function readFile(f){return new Promise(res=>{const r=new FileReader();r.onload=e=>res({dataUrl:e.target.result,b64:e.target.result.split(',')[1],mime:f.type||'image/jpeg',name:f.name});r.readAsDataURL(f);});}
+async function handleFiles(e,type){
+  const arr=type==='prod'?prodImages:charImages;
+  const max=type==='prod'?10:5;
+  for(const f of [...e.target.files].slice(0,max-arr.length)){if(f.type.startsWith('image/')) arr.push(await readFile(f));}
+  renderThumbs(type);
+}
+function renderThumbs(type){
+  const arr=type==='prod'?prodImages:charImages;
+  const max=type==='prod'?10:5;
+  const strip=document.getElementById(type==='prod'?'prodStrip':'charStrip');
+  strip.innerHTML='';
+  arr.forEach((img,i)=>{const d=document.createElement('div');d.className='thumb-item';d.innerHTML=`<img src="${img.dataUrl}"/><button class="del-btn" onclick="removeImg('${type}',${i})">×</button><div class="thumb-label">${i+1}</div>`;strip.appendChild(d);});
+  document.getElementById(type==='prod'?'prodCount':'charCount').textContent=arr.length?arr.length+'/'+max+' รูป':'';
+}
+function removeImg(type,idx){if(type==='prod') prodImages.splice(idx,1);else charImages.splice(idx,1);renderThumbs(type);}
+['upProd','upChar'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag');});el.addEventListener('dragleave',()=>el.classList.remove('drag'));el.addEventListener('drop',async e=>{e.preventDefault();el.classList.remove('drag');await handleFiles({target:{files:e.dataTransfer.files}},id==='upProd'?'prod':'char');});});
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function log(m){const a=document.getElementById('logBox');a.style.display='block';a.textContent+=m+'\n';a.scrollTop=a.scrollHeight;}
+function setStep(n,s,sub){document.getElementById('pi'+n).className='pico '+s;document.getElementById('ps'+n).textContent=sub;}
+function showTab(t){['script','images'].forEach(k=>{const K=k[0].toUpperCase()+k.slice(1);document.getElementById('panel'+K).style.display=k===t?'block':'none';document.getElementById('tab'+K).className='tabt'+(k===t?' on':'');});}
+function copyText(text,btn){navigator.clipboard.writeText(text).then(()=>{btn.textContent='✅ คัดลอกแล้ว';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 คัดลอก Prompt';btn.classList.remove('copied');},2500);});}
+function downloadImg(url,name){fetch(url).then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name+'.png';a.click();}).catch(()=>window.open(url,'_blank'));}
+function runId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+async function callGPT52(veKey,sys,userContent){
+  const res=await fetch(VE_BASE+'/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+veKey},body:JSON.stringify({model:'gpt-5.2',messages:[{role:'system',content:sys},{role:'user',content:userContent}],max_tokens:1200,temperature:0.85})});
+  const txt=await res.text();log('  gpt-5.2 '+res.status);
+  if(!res.ok) throw new Error('gpt-5.2 HTTP '+res.status);
+  return JSON.parse(txt).choices[0].message.content;
+}
+
+async function callImage(veKey,prompt,uid){
+  const allRefs=[...prodImages,...charImages];
+  const refNote=`\n\nReference images attached. Use for product/character identity. New scene. ID:${uid}`;
+  const full=prompt+refNote;
+  if(allRefs.length>0){
+    try{
+      const main=allRefs[0];
+      const byteStr=atob(main.b64);const arr=new Uint8Array(byteStr.length);for(let i=0;i<byteStr.length;i++) arr[i]=byteStr.charCodeAt(i);
+      const blob=new Blob([arr],{type:main.mime});
+      const form=new FormData();form.append('model','gpt-image-2');form.append('prompt',full);form.append('n','1');form.append('size',selSize);form.append('response_format','url');form.append('image',blob,'ref.png');
+      const res=await fetch(VE_BASE+'/v1/images/edits',{method:'POST',headers:{'Authorization':'Bearer '+veKey},body:form});
+      const txt=await res.text();log('  [edits] '+res.status);
+      if(res.ok){const d=JSON.parse(txt);const url=(d.data&&d.data[0]&&d.data[0].url)||d.url;if(url) return url;}
+    }catch(e){log('  [edits] fallback: '+e.message);}
+  }
+  const res2=await fetch(VE_BASE+'/v1/images/generations',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+veKey},body:JSON.stringify({model:'gpt-image-2',prompt:full,n:1,size:selSize,response_format:'url'})});
+  const txt2=await res2.text();log('  [gen] '+res2.status);
+  if(!res2.ok) throw new Error('HTTP '+res2.status);
+  const d2=JSON.parse(txt2);return (d2.data&&d2.data[0]&&d2.data[0].url)||d2.url||null;
+}
+
+function buildImgContent(imgs,text){const c=[];imgs.forEach((img,i)=>{c.push({type:'image_url',image_url:{url:img.dataUrl}});c.push({type:'text',text:`[รูป #${i+1}]`});});c.push({type:'text',text});return c;}
+
+async function runAnalysis(veKey,desc,sceneCount){
+  if(!prodImages.length&&!charImages.length) return;
+  const imgContent=[];
+  prodImages.forEach((img,i)=>{imgContent.push({type:'image_url',image_url:{url:img.dataUrl}});imgContent.push({type:'text',text:`[สินค้า #${i+1}]`});});
+  charImages.forEach((img,i)=>{imgContent.push({type:'image_url',image_url:{url:img.dataUrl}});imgContent.push({type:'text',text:`[ตัวละคร #${i+1}]`});});
+  imgContent.push({type:'text',text:`สินค้า:${desc}\nจำนวนซีน:${sceneCount}\nวางแผนการใช้รูป`});
+  const sys=`วิเคราะห์รูปทั้งหมดและวางแผนใช้งานสำหรับ ${sceneCount} ซีน ตอบ JSON บรรทัดเดียว:
+{"productSummary":"","charSummary":"","productDetails":[""],"charDetails":[""],"sceneMapping":[{"scene":1,"prodImageIndex":0,"charImageIndex":0,"sceneConcept":""}],"posterProdIndex":0,"posterCharIndex":0}`;
+  const raw=await callGPT52(veKey,sys,imgContent);
+  analysisResult=JSON.parse(raw.replace(/```json|```/g,'').trim());
+  if(prodImages.length){const b=document.getElementById('prodAnalysis');const c=document.getElementById('prodAnalysisContent');b.style.display='block';c.innerHTML='<div style="font-size:12px;color:#555;margin-bottom:6px;">'+(analysisResult.productSummary||'')+'</div>';(analysisResult.productDetails||[]).forEach((d,i)=>{const row=document.createElement('div');row.className='analysis-item';row.innerHTML=`<div class="a-num">${i+1}</div><div style="flex:1;font-size:12px;">${d}</div>`;c.appendChild(row);});}
+  if(charImages.length){const b=document.getElementById('charAnalysis');const c=document.getElementById('charAnalysisContent');b.style.display='block';c.innerHTML='<div style="font-size:12px;color:#555;margin-bottom:6px;">'+(analysisResult.charSummary||'')+'</div>';(analysisResult.charDetails||[]).forEach((d,i)=>{const row=document.createElement('div');row.className='analysis-item';row.innerHTML=`<div class="a-num">${i+1}</div><div style="flex:1;font-size:12px;">${d}</div>`;c.appendChild(row);});}
+}
+
+function getSceneImgs(i){
+  if(!analysisResult) return {p:prodImages.slice(0,1),c:charImages.slice(0,1)};
+  const m=analysisResult.sceneMapping.find(x=>x.scene===i)||{prodImageIndex:0,charImageIndex:0};
+  return {p:prodImages.length?[prodImages[Math.min(m.prodImageIndex||0,prodImages.length-1)]]:[], c:charImages.length?[charImages[Math.min(m.charImageIndex||0,charImages.length-1)]]:[]};
+}
+
+function buildScriptPanel(scenes,concept,typeLabel,voiceStyle){
+  const noVoice=voiceStyle.includes('No dialogue');
+  const panel=document.getElementById('panelScript');panel.innerHTML='';
+  const cb=document.createElement('div');cb.className='scene-block';cb.style.marginBottom='12px';
+  cb.innerHTML=`<div class="scene-hdr"><span class="scene-num">คอนเซ็ปต์</span><span style="font-size:12px;color:#999;">${typeLabel}</span></div><div class="scene-body" style="font-size:13px;line-height:2;">สินค้า: <b>${concept.product||'-'}</b><br>กลุ่มเป้าหมาย: ${concept.target||'-'}<br>Voice: ${concept.voiceStyle||voiceStyle}</div>`;
+  panel.appendChild(cb);
+  scenes.forEach(sc=>{
+    const combined=[sc.videoPrompt||'',(!noVoice&&sc.voiceOver)?`\n\nVoice-over: "${sc.voiceOver}"`:'',(noVoice&&sc.soundDesign)?`\n\nSound Design: ${sc.soundDesign}`:'','\n\nNo on-screen text. No subtitles. No lip sync. Mouth stays closed.'].join('');
+    const vid_id='vp_'+sc.scene;
+    const block=document.createElement('div');block.className='scene-block';
+    block.innerHTML=`<div class="scene-hdr"><span class="scene-num">ซีน ${sc.scene}</span><span class="scene-ttl">${sc.title||''}</span></div>
+<div class="scene-body">
+<div class="sec-lbl">🎬 Video Prompt${!noVoice?' + Voice-over':''}</div>
+<div class="prompt-box" id="${vid_id}">${combined.trim()}</div>
+<button class="copy-btn" onclick="copyText(document.getElementById('${vid_id}').textContent,this)">📋 คัดลอก Prompt</button>
+</div>`;
+    panel.appendChild(block);
+  });
+}
+
+// ── MAIN ──────────────────────────────────────────────────────────────
+async function startEngine(){
+  if(!currentUser){alert('กรุณา Login ก่อน');return;}
+  const desc=document.getElementById('desc').value.trim();
+  const sceneCount=Math.min(10,Math.max(1,parseInt(document.getElementById('sceneCount').value)||3));
+  const imgStyle=document.getElementById('imgStyle').value;
+  const platform=document.getElementById('platform').value;
+  const voiceStyle=document.getElementById('voiceStyle').value;
+  const extra=document.getElementById('extra').value.trim();
+  const posterHook=document.getElementById('posterHook').value.trim();
+  const posterTitle=document.getElementById('posterTitle').value.trim();
+  const posterSub=document.getElementById('posterSub').value.trim();
+  const posterScene=document.getElementById('posterScene').value.trim();
+  const totalCost=sceneCount+1;
+
+  if(!desc){alert('กรุณากรอกรายละเอียดสินค้า');return;}
+
+  // ดึง API Key จาก Supabase
+  let veKey='';
+  try{veKey=await getVeApiKey();}catch(e){alert('เชื่อมต่อ server ไม่ได้');return;}
+  if(!veKey){alert('Admin ยังไม่ได้ตั้งค่า API Key — กรุณาติดต่อ Admin');return;}
+
+  // ตรวจและหัก Token
+  if(!await deductToken(totalCost)) return;
+
+  document.getElementById('runBtn').disabled=true;
+  document.getElementById('progCard').style.display='block';
+  document.getElementById('outCard').style.display='none';
+  document.getElementById('logBox').textContent='';
+  document.getElementById('imgGrid').innerHTML='';
+  document.getElementById('panelScript').innerHTML='';
+  [0,1,2,3].forEach(n=>setStep(n,'sw','รอ'));
+
+  const typeLabel=['','รีวิวชุดเด็ก','รีวิวชุดสาวอวบ','รีวิวทั่วไป'][selType];
+  const noVoice=voiceStyle.includes('No dialogue');
+  const RID=runId();
+  let scenes=[],concept={};
+
+  try{
+    // Step 0: Analysis
+    setStep(0,'sr','วิเคราะห์รูป...');
+    log('[0] วิเคราะห์รูป '+(prodImages.length+charImages.length)+' รูป');
+    try{await runAnalysis(veKey,desc,sceneCount);}catch(e){log('  ⚠️ '+e.message);analysisResult=null;}
+    setStep(0,'sd','✅ เสร็จ');
+
+    // Step 1: Concept + Scenes
+    setStep(1,'sr','วิเคราะห์คอนเซ็ปต์...');
+    log('[1/3] สร้างสคริปต์...');
+    const sysConcept=`Kook Content Engine V2 Type:${typeLabel} Platform:${platform}. Reply JSON one line no markdown:
+{"product":"","target":"","tone":"","voiceStyle":"","characterIdentity":"","productIdentity":"","posterHook":"Thai hook","posterScene":"English scene","productName":"","tagline":"Thai tagline"}`;
+    const rawC=await callGPT52(veKey,sysConcept,buildImgContent([...prodImages,...charImages],`Product:${desc}\nStyle:${imgStyle}\nVoice:${voiceStyle}\n${extra?'Extra:'+extra:''}`));
+    try{concept=JSON.parse(rawC.replace(/```json|```/g,'').trim());}catch(e){concept={product:desc,posterHook:'สินค้าดีที่สุด!',posterScene:'cinematic product',productName:desc.slice(0,20),tagline:'คุณภาพคุ้มค่า'};}
+
+    const PF='1.Opening 2.Reinforce 3.Context 4.Intensify 5.Transition 6.Highlight 7.Shift 8.Outcome';
+    const cams=['close-up face and product','wide establishing shot','top-down overhead','low angle hero','high angle overview','side profile','over-the-shoulder POV','dutch angle'];
+    const sysScene=`Kook V2 Type:${typeLabel}. ${typeAutoAdd[selType]} ${RH}
+1 scene only. JSON one line no markdown:
+{"scene":0,"title":"Thai","imagePrompt":"Ultra realistic 2x4 grid 8 panels ${selRatio}. SCENE_DETAIL. ${typeAutoAdd[selType]} ${RH} Camera:CAMERA. No text. No watermark.","videoPrompt":"Ultra realistic 10s cinematic. 8 shots. Voice 0.50s.","voiceOver":"20-30 Thai","soundDesign":"ambient"}`;
+
+    for(let i=1;i<=sceneCount;i++){
+      setStep(1,'sr','ซีน '+i+'/'+sceneCount);
+      const {p,c}=getSceneImgs(i);
+      const cam=cams[(i-1)%cams.length];
+      const prev=scenes.map(s=>s.title).join(' | ');
+      const msg=`Product:${desc}\nScene:${i}/${sceneCount}\nCamera:${cam}\nPanel:${PF}\n${prev?'Avoid: '+prev:''}\nID:${RID}-s${i}`;
+      try{
+        const raw=await callGPT52(veKey,sysScene.replace('CAMERA',cam).replace('SCENE_DETAIL','unique scene #'+i),buildImgContent([...p,...c],msg));
+        const sc=JSON.parse(raw.replace(/```json|```/g,'').trim());sc.scene=i;scenes.push(sc);log('  ✅ ซีน '+i+': '+sc.title);
+      }catch(e){log('  ❌ ซีน '+i+': '+e.message);}
+    }
+    if(!scenes.length) throw new Error('สร้างสคริปต์ไม่ได้');
+    buildScriptPanel(scenes,concept,typeLabel,voiceStyle);
+    document.getElementById('outCard').style.display='block';showTab('script');
+    setStep(1,'sd','✅ '+scenes.length+' ซีน');
+
+    // Step 2: Images
+    setStep(2,'sr','สร้างรูป...');log('\n[2/3] สร้างรูป '+scenes.length+' ซีน');
+    for(let i=0;i<scenes.length;i++){
+      const sc=scenes[i];setStep(2,'sr','ซีน '+(i+1)+'/'+scenes.length);
+      try{
+        const url=await callImage(veKey,sc.imagePrompt,RID+'-img-'+sc.scene);
+        if(url){sc.imgUrl=url;const ih=selSize==='1792x1024'?'100px':selSize==='1024x1024'?'150px':'180px';const card=document.createElement('div');card.className='imgcard';card.innerHTML=`<img src="${url}" style="height:${ih};"/><div class="ilab">ซีน ${sc.scene}: ${sc.title}</div><div class="iact"><a class="iabtn" href="${url}" target="_blank">🔍 เปิด</a><button class="iabtn" onclick="downloadImg('${url}','scene_${sc.scene}')">⬇ โหลด</button></div>`;document.getElementById('imgGrid').appendChild(card);}
+      }catch(e){log('  ❌ '+e.message);}
+    }
+    const imgDone=scenes.filter(s=>s.imgUrl).length;document.getElementById('imgBadge').textContent=imgDone;
+    setStep(2,'sd','✅ '+imgDone+'/'+scenes.length);
+
+    // Step 3: Poster
+    setStep(3,'sr','สร้าง Poster...');log('\n[3/3] Poster');
+    const pPIdx=analysisResult?Math.min(analysisResult.posterProdIndex||0,prodImages.length-1):0;
+    const pCIdx=analysisResult?Math.min(analysisResult.posterCharIndex||0,charImages.length-1):0;
+    const pProd=prodImages.length?[prodImages[pPIdx]]:[];
+    const pChar=charImages.length&&posterPerson==='yes'?[charImages[pCIdx]]:[];
+    const hook=posterHook||concept.posterHook||'คุณภาพดีที่สุด!';
+    const pt=posterTitle||concept.productName||desc.slice(0,25);
+    const ps=posterSub||concept.tagline||'สั่งได้เลย';
+    const psc=posterScene||concept.posterScene||`Premium ${imgStyle} setting`;
+    const textRule=posterText==='yes'?`Thai text REQUIRED: Hook:"${hook}" Title:"${pt}" Sub:"${ps}". Bold modern Thai font.`:'NO TEXT at all. Pure visual only.';
+    const personRule=posterPerson==='yes'?`Include person. ${typeAutoAdd[selType]||''} ${RH}`:'Product-only. NO people.';
+    const posterPrompt=`Create bold ${selRatio} commercial poster for ${typeLabel}: ${desc}. ${(pProd.length+pChar.length)?'Reference = product/char identity. New composition.':''} STYLE:${posterStyles[posterStyle]} PERSON:${personRule} TEXT:${textRule} ${RH} No watermark.`;
+    try{
+      const purl=await callImage(veKey,posterPrompt,RID+'-poster');
+      if(purl){const ih=selSize==='1792x1024'?'130px':'270px';const card=document.createElement('div');card.className='imgcard';card.style.gridColumn='1/-1';card.innerHTML=`<img src="${purl}" style="height:${ih};object-fit:cover;"/><div class="ilab" style="background:#EEEDFE;color:#3C3489;font-weight:600;">🎨 Poster — ${posterStyles[posterStyle].split('.')[0]}</div><div class="iact"><a class="iabtn" href="${purl}" target="_blank">🔍 เปิด</a><button class="iabtn" onclick="downloadImg('${purl}','poster')">⬇ โหลด</button></div>`;document.getElementById('imgGrid').prepend(card);document.getElementById('imgBadge').textContent=imgDone+1;}
+      setStep(3,'sd','✅ Poster สำเร็จ');
+    }catch(e){setStep(3,'se','❌ '+e.message);log('❌ Poster: '+e.message);}
+
+    log('\n🎉 เสร็จ! รูป '+(imgDone+1)+' รูป · ใช้ไป '+totalCost+' Token');
+    showTab('images');
+
+  }catch(e){
+    log('\n❌ Error: '+e.message);setStep(1,'se','❌ '+e.message);
+  }
+  document.getElementById('runBtn').disabled=false;
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────
+window.onload=async()=>{
+  const saved=localStorage.getItem('kook_v2_session');
+  if(saved){
+    const [id]=saved.split('|');
+    try{
+      const rows=await sb('GET','keys?id=eq.'+id);
+      const k=rows&&rows[0];
+      if(k&&k.status==='active'&&k.remaining>0&&(!k.expiry||new Date(k.expiry)>=new Date())){
+        currentUser=k;showMain();return;
+      }
+    }catch(e){}
+  }
+};
+</script>
+</body>
+</html>
