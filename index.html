@@ -70,6 +70,10 @@ textarea{resize:vertical;line-height:1.6;}
 .size-btns{display:flex;gap:6px;}
 .szb{padding:6px 14px;font-size:12px;font-weight:500;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fff;color:#666;transition:all .15s;}
 .szb.on{border-color:#534AB7;background:#EEEDFE;color:#3C3489;}
+/* Image model buttons */
+.imgmbtn{border:1.5px solid #e8e6e0;border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center;background:#fff;font-family:'Sarabun',sans-serif;transition:all .15s;width:100%;}
+.imgmbtn:hover{border-color:#AFA9EC;background:#EEEDFE22;}
+.imgmbtn.on{border-color:#534AB7;background:#EEEDFE;}
 .tog-group{display:flex;gap:6px;flex-wrap:wrap;}
 .togbtn{padding:7px 13px;font-size:12px;font-weight:500;border:1.5px solid #ddd;border-radius:8px;cursor:pointer;background:#fff;color:#666;font-family:'Sarabun',sans-serif;}
 .togbtn.on{border-color:#534AB7;background:#EEEDFE;color:#3C3489;}
@@ -284,6 +288,36 @@ textarea{resize:vertical;line-height:1.6;}
     </div>
   </div>
   <div class="field">
+    <label class="lbl">โมเดลสร้างรูป</label>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;" id="imgModelGrid">
+      <button class="imgmbtn on" id="im_gpt2" onclick="setImgModel('gpt-image-2',this)">
+        <div style="font-size:15px;margin-bottom:2px;">🎨</div>
+        <div style="font-size:12px;font-weight:600;">gpt-image-2</div>
+        <div style="font-size:10px;color:#999;">คุณภาพสูง · รองรับ reference</div>
+        <div style="font-size:10px;color:#f5a623;margin-top:2px;">~0.155 token/รูป · ~140s</div>
+      </button>
+      <button class="imgmbtn" id="im_qwen2" onclick="setImgModel('qwen-image-2.0',this)">
+        <div style="font-size:15px;margin-bottom:2px;">⚡</div>
+        <div style="font-size:12px;font-weight:600;">qwen-image-2.0</div>
+        <div style="font-size:10px;color:#999;">text ดี · เร็ว · ราคาถูก</div>
+        <div style="font-size:10px;color:#145a32;margin-top:2px;">~0.013 token/รูป · เร็วกว่า</div>
+      </button>
+      <button class="imgmbtn" id="im_qwen25" onclick="setImgModel('qwen-image-2.0-2026-03-03',this)">
+        <div style="font-size:15px;margin-bottom:2px;">🚀</div>
+        <div style="font-size:12px;font-weight:600;">qwen-image-2.0 (Mar)</div>
+        <div style="font-size:10px;color:#999;">เวอร์ชันใหม่ล่าสุด</div>
+        <div style="font-size:10px;color:#145a32;margin-top:2px;">~0.026 token/รูป</div>
+      </button>
+      <button class="imgmbtn" id="im_gemini" onclick="setImgModel('gemini-3.1-flash-image',this)">
+        <div style="font-size:15px;margin-bottom:2px;">💎</div>
+        <div style="font-size:12px;font-weight:600;">Gemini 3.1 Flash Image</div>
+        <div style="font-size:10px;color:#999;">Google · เร็ว · คุณภาพสูง</div>
+        <div style="font-size:10px;color:#534AB7;margin-top:2px;">~0.248 token/รูป</div>
+      </button>
+    </div>
+    <div style="font-size:11px;color:#aaa;margin-top:6px;">💡 แนะนำ: ลอง qwen-image-2.0 ก่อน ถูกกว่า 12x และ text rendering ดีมาก</div>
+  </div>
+  <div class="field">
     <label class="lbl">รายละเอียดเพิ่มเติม / คาแรกเตอร์ / บรรยากาศ</label>
     <textarea id="extra" rows="3" placeholder="เช่น: ตัวละครหลักเป็นหญิงสาวผิวแทน ผมยาวดำ ชุดขาว อายุ 25 ปี บรรยากาศในครัวพรีเมียม แสงบ่ายอบอุ่น&#10;หรือ: สาวอวบผมสั้น เสื้อผ้าแฟชั่น สีสด ร้านกาแฟมินิมอล&#10;หรือ: เด็กผู้หญิง 4 ขวบ ชุดนอนแมวน้อย ห้องนอนอบอุ่น มีคุณแม่อยู่ด้วย"></textarea>
   </div>
@@ -365,6 +399,13 @@ const VE_BASE='https://api.vectorengine.ai';
 let currentUser=null;
 let prodImages=[], charImages=[], analysisResult=null;
 let selSize='1024x1792', selRatio='9:16';
+let selImgModel='gpt-image-2'; // default
+
+function setImgModel(model, btn){
+  selImgModel=model;
+  document.querySelectorAll('.imgmbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
 let posterText='yes', posterPerson='yes', posterStyle='cinematic_commercial';
 
 const RH='Real human appearance, realistic skin texture, visible pores, natural imperfections, non-AI face, realistic hands and fingers, documentary realism. Avoid plastic skin, AI beauty face, CGI look.';
@@ -494,22 +535,50 @@ async function callGPT52(veKey,sys,userContent){
 
 async function callImage(veKey,prompt,uid){
   const allRefs=[...prodImages,...charImages];
+  const modelName=selImgModel;
   const full=prompt+`\n\nUnique scene ID: ${uid}. Reference images attached — use ONLY as identity reference for product/character. Do NOT copy original photos. Create completely new scene, new composition, new background.`;
-  if(allRefs.length>0){
+
+  // ลอง /edits (multipart) กับ gpt-image-2 เท่านั้น เพราะ qwen ไม่รองรับ /edits
+  if(allRefs.length>0 && modelName==='gpt-image-2'){
     try{
       const main=allRefs[0];
       const byteStr=atob(main.b64);const arr=new Uint8Array(byteStr.length);for(let i=0;i<byteStr.length;i++)arr[i]=byteStr.charCodeAt(i);
       const blob=new Blob([arr],{type:main.mime});
-      const form=new FormData();form.append('model','gpt-image-2');form.append('prompt',full);form.append('n','1');form.append('size',selSize);form.append('response_format','url');form.append('image',blob,'ref.png');
+      const form=new FormData();
+      form.append('model',modelName);form.append('prompt',full);form.append('n','1');
+      form.append('size',selSize);form.append('response_format','url');form.append('image',blob,'ref.png');
       const res=await fetch(VE_BASE+'/v1/images/edits',{method:'POST',headers:{'Authorization':'Bearer '+veKey},body:form});
-      const txt=await res.text();log('  [edits] '+res.status);
+      const txt=await res.text();log('  [edits/'+modelName+'] '+res.status);
       if(res.ok){const d=JSON.parse(txt);const url=(d.data&&d.data[0]&&d.data[0].url)||d.url;if(url)return url;}
     }catch(e){log('  [edits] fallback: '+e.message);}
   }
-  const res2=await fetch(VE_BASE+'/v1/images/generations',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+veKey},body:JSON.stringify({model:'gpt-image-2',prompt:full,n:1,size:selSize,response_format:'url'})});
-  const txt2=await res2.text();log('  [gen] '+res2.status);
-  if(!res2.ok)throw new Error('HTTP '+res2.status);
-  const d2=JSON.parse(txt2);return (d2.data&&d2.data[0]&&d2.data[0].url)||d2.url||null;
+
+  // /generations — ใช้ได้กับทุกโมเดล
+  // สำหรับ qwen เพิ่ม ref description ใน prompt แทน
+  let genPrompt=full;
+  if(allRefs.length>0 && modelName!=='gpt-image-2'){
+    genPrompt=prompt+`\n\nReference image description provided above. Maintain product and character identity consistency. Unique scene ID: ${uid}.`;
+  }
+
+  // qwen รองรับ size แตกต่างจาก gpt — map ให้ถูกต้อง
+  let imgSize=selSize;
+  if(modelName.startsWith('qwen')){
+    // qwen รองรับ: 1024x1024, 720x1280, 1280x720
+    const sizeMap={'1024x1792':'720x1280','1792x1024':'1280x720','1024x1024':'1024x1024'};
+    imgSize=sizeMap[selSize]||'1024x1024';
+    log('  [qwen] size mapped: '+selSize+' → '+imgSize);
+  }
+
+  const res2=await fetch(VE_BASE+'/v1/images/generations',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+veKey},
+    body:JSON.stringify({model:modelName,prompt:genPrompt,n:1,size:imgSize,response_format:'url'})
+  });
+  const txt2=await res2.text();
+  log('  [gen/'+modelName+'] '+res2.status+' → '+txt2.slice(0,120));
+  if(!res2.ok)throw new Error('HTTP '+res2.status+': '+txt2.slice(0,60));
+  const d2=JSON.parse(txt2);
+  return (d2.data&&d2.data[0]&&d2.data[0].url)||d2.url||null;
 }
 
 async function runAnalysis(veKey,desc,sceneCount){
@@ -862,29 +931,26 @@ Visual direction: ${psc}. Hero shot center composition.
 ${RH}
 Avoid: No watermark, no distortion, no wrong anatomy${posterText==='no'?', absolutely NO text of any kind':''}.`;
     try{
-      // add refs to poster call
+      // Poster — ใช้ callImage เลย (รองรับทุกโมเดล)
       const pAllRefs=[...pProd,...pChar];
+      // inject refs เข้า prodImages/charImages ชั่วคราว
+      const _bkProd=[...prodImages],_bkChar=[...charImages];
+      if(pProd.length) prodImages.splice(0,prodImages.length,...pProd);
+      else prodImages.splice(0);
+      if(pChar.length) charImages.splice(0,charImages.length,...pChar);
+      else charImages.splice(0);
       let purl=null;
-      if(pAllRefs.length>0){
-        try{
-          const main=pAllRefs[0];
-          const byteStr=atob(main.b64);const arr2=new Uint8Array(byteStr.length);for(let i=0;i<byteStr.length;i++)arr2[i]=byteStr.charCodeAt(i);
-          const blob2=new Blob([arr2],{type:main.mime});
-          const form2=new FormData();form2.append('model','gpt-image-2');form2.append('prompt',posterPrompt+'\nID:'+RID+'-poster');form2.append('n','1');form2.append('size',selSize);form2.append('response_format','url');form2.append('image',blob2,'ref.png');
-          const res3=await fetch(VE_BASE+'/v1/images/edits',{method:'POST',headers:{'Authorization':'Bearer '+veKey},body:form2});
-          const txt3=await res3.text();log('  [poster edits] '+res3.status);
-          if(res3.ok){const d3=JSON.parse(txt3);purl=(d3.data&&d3.data[0]&&d3.data[0].url)||d3.url||null;}
-        }catch(e){log('  [poster edits] fallback: '+e.message);}
-      }
-      if(!purl){
-        const res4=await fetch(VE_BASE+'/v1/images/generations',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+veKey},body:JSON.stringify({model:'gpt-image-2',prompt:posterPrompt+'\nID:'+RID+'-poster',n:1,size:selSize,response_format:'url'})});
-        const txt4=await res4.text();log('  [poster gen] '+res4.status);
-        if(res4.ok){const d4=JSON.parse(txt4);purl=(d4.data&&d4.data[0]&&d4.data[0].url)||d4.url||null;}
-      }
+      try{ purl=await callImage(veKey,posterPrompt,RID+'-poster'); }catch(e){log('  [poster] '+e.message);}
+      // restore
+      prodImages.splice(0,prodImages.length,..._bkProd);
+      charImages.splice(0,charImages.length,..._bkChar);
+
       if(purl){
         const ih=selSize==='1792x1024'?'130px':'270px';
         const card=document.createElement('div');card.className='imgcard';card.style.gridColumn='1/-1';
-        card.innerHTML=`<img src="${purl}" style="height:${ih};object-fit:cover;"/><div class="ilab" style="background:#EEEDFE;color:#3C3489;font-weight:600;">🎨 Poster — ${posterText==='yes'?'มีตัวหนังสือ':'ไม่มีตัวหนังสือ'} · ${posterPerson==='yes'?'มีคน':'Product Only'}</div><div class="iact"><a class="iabtn" href="${purl}" target="_blank">🔍 เปิด</a><button class="iabtn" onclick="downloadImg('${purl}','poster')">⬇ โหลด</button></div>`;
+        card.innerHTML=`<img src="${purl}" style="height:${ih};object-fit:cover;"/>
+<div class="ilab" style="background:#EEEDFE;color:#3C3489;font-weight:600;">🎨 Poster · ${selImgModel} · ${posterText==='yes'?'มีตัวหนังสือ':'ไม่มีตัวหนังสือ'} · ${posterPerson==='yes'?'มีคน':'Product Only'}</div>
+<div class="iact"><a class="iabtn" href="${purl}" target="_blank">🔍 เปิด</a><button class="iabtn" onclick="downloadImg('${purl}','poster')">⬇ โหลด</button></div>`;
         document.getElementById('imgGrid').prepend(card);
         document.getElementById('imgBadge').textContent=imgDone+1;
       }
