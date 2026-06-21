@@ -280,6 +280,41 @@ textarea{resize:vertical;line-height:1.6;}
       </select>
     </div>
   </div>
+
+  <!-- Script Model Selector -->
+  <div class="field">
+    <label class="lbl">โมเดลสร้างสคริปต์ / Hook / Voice-over</label>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <button class="imgmbtn" id="sm_haiku" onclick="setScriptModel('claude-haiku-4-5-20251001',this)">
+        <div style="font-size:15px;margin-bottom:2px;">⚡</div>
+        <div style="font-size:12px;font-weight:600;">Claude Haiku</div>
+        <div style="font-size:10px;color:#999;">เร็วสุด · ประหยัด</div>
+        <div style="font-size:10px;color:#145a32;margin-top:2px;">1.0/5.0 per 1M token</div>
+      </button>
+      <button class="imgmbtn on" id="sm_sonnet" onclick="setScriptModel('claude-sonnet-4-6',this)">
+        <div style="font-size:15px;margin-bottom:2px;">✨</div>
+        <div style="font-size:12px;font-weight:600;">Claude Sonnet ⭐</div>
+        <div style="font-size:10px;color:#999;">สมดุล · แนะนำ</div>
+        <div style="font-size:10px;color:#534AB7;margin-top:2px;">3.0/15.0 per 1M token</div>
+      </button>
+      <button class="imgmbtn" id="sm_opus" onclick="setScriptModel('claude-opus-4-8',this)">
+        <div style="font-size:15px;margin-bottom:2px;">👑</div>
+        <div style="font-size:12px;font-weight:600;">Claude Opus</div>
+        <div style="font-size:10px;color:#999;">ฉลาดสุด · งานซับซ้อน</div>
+        <div style="font-size:10px;color:#f5a623;margin-top:2px;">5.0/25.0 per 1M token</div>
+      </button>
+      <button class="imgmbtn" id="sm_gpt52" onclick="setScriptModel('gpt-5.2',this)">
+        <div style="font-size:15px;margin-bottom:2px;">🤖</div>
+        <div style="font-size:12px;font-weight:600;">GPT-5.2</div>
+        <div style="font-size:10px;color:#999;">OpenAI · ใช้อยู่เดิม</div>
+        <div style="font-size:10px;color:#999;margin-top:2px;">0.875/M token</div>
+      </button>
+      <button class="imgmbtn" id="sm_sonnet46" onclick="setScriptModel('claude-sonnet-4-6',this)" style="display:none;"></button>
+    </div>
+    <div style="font-size:11px;background:#EEEDFE;color:#3C3489;padding:7px 10px;border-radius:8px;margin-top:8px;">
+      💡 Claude เขียน Hook และ Voice-over ภาษาไทยได้เป็นธรรมชาติกว่า GPT-5.2 มาก — แนะนำใช้ Sonnet สำหรับงานเรื่องสั้น
+    </div>
+  </div>
   <div class="field"><label class="lbl">ขนาดรูป</label>
     <div class="size-btns">
       <button class="szb on" id="sz916" onclick="setSize('9:16','1024x1792')">9:16 แนวตั้ง</button>
@@ -289,30 +324,24 @@ textarea{resize:vertical;line-height:1.6;}
   </div>
   <div class="field">
     <label class="lbl">โมเดลสร้างรูป</label>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;" id="imgModelGrid">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;" id="imgModelGrid">
       <button class="imgmbtn on" id="im_gpt2" onclick="setImgModel('gpt-image-2',this)">
         <div style="font-size:15px;margin-bottom:2px;">🎨</div>
         <div style="font-size:12px;font-weight:600;">gpt-image-2</div>
         <div style="font-size:10px;color:#999;">คุณภาพสูง · รองรับ reference</div>
         <div style="font-size:10px;color:#f5a623;margin-top:2px;">~0.155 token/รูป · ~140s</div>
       </button>
-      <button class="imgmbtn" id="im_qwen2" onclick="setImgModel('qwen-image-2.0',this)">
-        <div style="font-size:15px;margin-bottom:2px;">⚡</div>
-        <div style="font-size:12px;font-weight:600;">qwen-image-2.0</div>
-        <div style="font-size:10px;color:#999;">text ดี · เร็ว · ราคาถูก</div>
-        <div style="font-size:10px;color:#145a32;margin-top:2px;">~0.013 token/รูป · เร็วกว่า</div>
-      </button>
       <button class="imgmbtn" id="im_qwen25" onclick="setImgModel('qwen-image-2.0-2026-03-03',this)">
-        <div style="font-size:15px;margin-bottom:2px;">🚀</div>
-        <div style="font-size:12px;font-weight:600;">qwen-image-2.0 (Mar)</div>
-        <div style="font-size:10px;color:#999;">เวอร์ชันใหม่ล่าสุด</div>
-        <div style="font-size:10px;color:#145a32;margin-top:2px;">~0.026 token/รูป</div>
+        <div style="font-size:15px;margin-bottom:2px;">⚡</div>
+        <div style="font-size:12px;font-weight:600;">qwen-image-2.0 (Mar 2026)</div>
+        <div style="font-size:10px;color:#999;">✅ text ดี · เร็ว · ประหยัด</div>
+        <div style="font-size:10px;color:#145a32;margin-top:2px;">~0.026 token/รูป · แนะนำ</div>
       </button>
-      <button class="imgmbtn" id="im_gemini" onclick="setImgModel('gemini-3.1-flash-image',this)">
+      <button class="imgmbtn" id="im_gpt15" onclick="setImgModel('gpt-image-1.5',this)">
         <div style="font-size:15px;margin-bottom:2px;">💎</div>
-        <div style="font-size:12px;font-weight:600;">Gemini 3.1 Flash Image</div>
-        <div style="font-size:10px;color:#999;">Google · เร็ว · คุณภาพสูง</div>
-        <div style="font-size:10px;color:#534AB7;margin-top:2px;">~0.248 token/รูป</div>
+        <div style="font-size:12px;font-weight:600;">gpt-image-1.5</div>
+        <div style="font-size:10px;color:#999;">OpenAI · คุณภาพสูงสุด</div>
+        <div style="font-size:10px;color:#534AB7;margin-top:2px;">เวอร์ชันใหม่ล่าสุด</div>
       </button>
     </div>
     <div style="font-size:11px;color:#aaa;margin-top:6px;">💡 แนะนำ: ลอง qwen-image-2.0 ก่อน ถูกกว่า 12x และ text rendering ดีมาก</div>
@@ -399,11 +428,19 @@ const VE_BASE='https://api.vectorengine.ai';
 let currentUser=null;
 let prodImages=[], charImages=[], analysisResult=null;
 let selSize='1024x1792', selRatio='9:16';
-let selImgModel='gpt-image-2'; // default
+let selImgModel='gpt-image-2';
+let selScriptModel='claude-sonnet-4-6'; // default Claude Sonnet
 
 function setImgModel(model, btn){
   selImgModel=model;
   document.querySelectorAll('.imgmbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function setScriptModel(model, btn){
+  selScriptModel=model;
+  // หา parent grid แล้ว reset เฉพาะปุ่ม script model
+  btn.closest('div[style*="grid"]').querySelectorAll('.imgmbtn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
 }
 let posterText='yes', posterPerson='yes', posterStyle='cinematic_commercial';
@@ -522,15 +559,73 @@ function log(m){const a=document.getElementById('logBox');a.style.display='block
 function setStep(n,s,sub){document.getElementById('pi'+n).className='pico '+s;document.getElementById('ps'+n).textContent=sub;}
 function showTab(t){['script','images'].forEach(k=>{const K=k[0].toUpperCase()+k.slice(1);document.getElementById('panel'+K).style.display=k===t?'block':'none';document.getElementById('tab'+K).className='tabt'+(k===t?' on':'');});}
 function copyText(text,btn){navigator.clipboard.writeText(text).then(()=>{btn.textContent='✅ คัดลอกแล้ว';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 คัดลอก';btn.classList.remove('copied');},2500);});}
-function downloadImg(url,name){fetch(url).then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name+'.png';a.click();}).catch(()=>window.open(url,'_blank'));}
+function openImg(url){
+  // เปิดรูปในแท็บใหม่ — ใช้ window.open เพราะ URL มี signed token
+  window.open(url,'_blank','noopener');
+}
+function downloadImg(url,name){
+  // ดาวน์โหลดผ่าน fetch → blob → click
+  fetch(url)
+    .then(r=>{if(!r.ok)throw new Error('fetch failed');return r.blob();})
+    .then(blob=>{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=(name||'image')+'.png';
+      document.body.appendChild(a);a.click();
+      setTimeout(()=>{URL.revokeObjectURL(a.href);document.body.removeChild(a);},1000);
+    })
+    .catch(()=>{
+      // ถ้า CORS block ให้ fallback เปิดในแท็บ
+      window.open(url,'_blank','noopener');
+    });
+}
 function runId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function buildImgContent(imgs,text){const c=[];imgs.forEach((img,i)=>{c.push({type:'image_url',image_url:{url:img.dataUrl}});c.push({type:'text',text:`[รูป #${i+1}]`});});c.push({type:'text',text});return c;}
 
 async function callGPT52(veKey,sys,userContent){
-  const res=await fetch(VE_BASE+'/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+veKey},body:JSON.stringify({model:'gpt-5.2',messages:[{role:'system',content:sys},{role:'user',content:userContent}],max_tokens:1400,temperature:0.85})});
-  const txt=await res.text();log('  gpt-5.2 '+res.status);
-  if(!res.ok)throw new Error('gpt-5.2 HTTP '+res.status);
-  return JSON.parse(txt).choices[0].message.content;
+  const isClaude = selScriptModel.startsWith('claude');
+  const modelName = selScriptModel;
+
+  if(isClaude){
+    // Claude — ใช้ /v1/chat/completions เหมือนกัน แต่ format messages ต่างกันนิดหน่อย
+    // VectorEngine รองรับ Claude ผ่าน OpenAI-compatible endpoint
+    const messages=[{role:'user',content:Array.isArray(userContent)?userContent:userContent}];
+    const res=await fetch(VE_BASE+'/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+veKey},
+      body:JSON.stringify({
+        model:modelName,
+        system:sys,
+        messages,
+        max_tokens:1500,
+        temperature:0.85
+      })
+    });
+    const txt=await res.text();
+    log('  '+modelName+' '+res.status);
+    if(!res.ok) throw new Error(modelName+' HTTP '+res.status+': '+txt.slice(0,80));
+    const d=JSON.parse(txt);
+    // Claude response: choices[0].message.content หรือ content[0].text
+    return d.choices?.[0]?.message?.content
+      || (Array.isArray(d.content)?d.content[0]?.text:'')
+      || '';
+  } else {
+    // GPT — format เดิม
+    const res=await fetch(VE_BASE+'/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+veKey},
+      body:JSON.stringify({
+        model:modelName,
+        messages:[{role:'system',content:sys},{role:'user',content:userContent}],
+        max_tokens:1500,
+        temperature:0.85
+      })
+    });
+    const txt=await res.text();
+    log('  '+modelName+' '+res.status);
+    if(!res.ok) throw new Error(modelName+' HTTP '+res.status+': '+txt.slice(0,80));
+    return JSON.parse(txt).choices[0].message.content;
+  }
 }
 
 async function callImage(veKey,prompt,uid){
@@ -704,7 +799,7 @@ async function regenScene(sceneNum){
       if(card) card.innerHTML=`<img src="${url}" style="height:${ih};"/>
 <div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
 <div class="iact">
-  <a class="iabtn" href="${url}" target="_blank">🔍 เปิด</a>
+  <button class="iabtn" onclick="openImg('${url}')">🔍 เปิดดู</button>
   <button class="iabtn" onclick="downloadImg('${url}','scene_${sc.scene}')">⬇ โหลด</button>
   <button class="iabtn" id="regen-${sceneNum}" onclick="regenScene(${sceneNum})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄</button>
 </div>`;
@@ -820,12 +915,16 @@ IMPORTANT RULES:
 
 VOICE-OVER RULES (สำคัญมาก):
 - บทพูดต้องสั้น กระชับ ลึก 20-30 คำเท่านั้น
-- ขึ้นต้นด้วยประโยคที่ทำให้คนหยุดฟัง เช่น "รู้ไหม…" "ไม่มีใครรู้ว่า…" "มันเริ่มต้นจาก…"
-- ห้ามบอกเล่าตรงๆ ให้พูดแบบ hint ลึกลับ ปล่อยให้คนดูอยากรู้ต่อ
+- ห้ามขึ้นต้นซ้ำกันทุกซีน ต้องหลากหลาย
+- เลือก Hook pattern ให้เหมาะกับซีนนั้น:
+  * Pattern A (ตั้งคำถาม): "รู้ไหมว่า…" / "เคยสังเกตไหม…" / "ถามตัวเองเลย…"
+  * Pattern B (บอกเล่าลึกลับ): "ไม่มีใครรู้ว่า…" / "มันเริ่มต้นจาก…" / "สิ่งที่เธอไม่รู้คือ…"
+  * Pattern C (เข้าฉากตรงๆ): "ฉันเห็นมันทุกคืน…" / "ตานีกระซิบว่า…" / "เงาที่ซ้อนอยู่…"
+  * Pattern D (twist): "แต่ไม่มีใครเชื่อ…" / "จนกระทั่งวันนั้น…" / "นั่นแหละคือความจริง…"
+  * Pattern E (ขายของ): "หยุดก่อนนะ…" / "ลองดูสักครั้ง…" / "นี่คือเหตุผลที่…"
 - บทพูดต้องเชื่อมกับภาพซีนนั้นโดยตรง ไม่ใช่บรรยายทั่วไป
-- ตัวอย่างดี: "รู้ไหม…ทุกคนมีไพรีติดตัวมาแต่เกิด แต่คนทั่วไปมองไม่เห็น นาราเห็น—และมีถึงสองตัว"
-- ตัวอย่างดี: "ไม่มีใครรู้ว่าเงาที่ซ้อนอยู่ข้างหลัง…ไม่ใช่เงาของเธอ"
-- ตัวอย่างเลว: "ในซีนนี้ตัวละครกำลังทำ..." (ห้ามเด็ดขาด)
+- ฟังแล้วรู้สึก — ไม่ใช่แค่อ่าน
+- ห้ามพูดตรงๆ ให้ hint ให้คนดูต้องคิดต่อเอง
 
 สร้าง 1 ซีนเท่านั้น ตอบ JSON บรรทัดเดียว ไม่มี markdown:
 {"scene":0,"title":"ชื่อซีนภาษาไทย","imagePrompt":"[ENGLISH: 2x4 grid 8 panels ${selRatio} ${imgStyle}. SCENE_DESCRIPTION. Character: CHAR_ID. ${RH} Same character same outfit same hairstyle same lighting same color grading same mood throughout. Camera: CAMERA_ANGLE. No text overlay. No watermark. ID:RUNID]","videoPrompt":"[ENGLISH: Ultra realistic cinematic 10s video. SCENE_DESCRIPTION. Same character same outfit same hairstyle same lighting same mood. Shot1:X Shot2:X Shot3:X Shot4:X Shot5:X Shot6:X Shot7:X Shot8:X. Voice starts after 0.50 seconds.]","voiceOver":"${noVoice?'':' บทพูด 20-30 คำ ขึ้นต้นด้วยประโยคดึงดูด เชื่อมกับภาพซีนนี้โดยตรง'}","voiceStyle":"${voiceStyle}","soundDesign":"${noVoice?'• Ambient • Environment • Transition • Emotion':''}","musicStyle":"${noVoice?'เช่น Dark Fantasy / Horror Ambience / etc':''}"}`;
@@ -888,7 +987,7 @@ VOICE-OVER RULES (สำคัญมาก):
             if(card) card.innerHTML=`<img src="${url}" style="height:${ih};"/>
 <div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
 <div class="iact">
-  <a class="iabtn" href="${url}" target="_blank">🔍 เปิด</a>
+  <button class="iabtn" onclick="openImg('${url}')">🔍 เปิดดู</button>
   <button class="iabtn" onclick="downloadImg('${url}','scene_${sc.scene}')">⬇ โหลด</button>
   <button class="iabtn" id="regen-${sc.scene}" onclick="regenScene(${sc.scene})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄</button>
 </div>`;
@@ -950,7 +1049,7 @@ Avoid: No watermark, no distortion, no wrong anatomy${posterText==='no'?', absol
         const card=document.createElement('div');card.className='imgcard';card.style.gridColumn='1/-1';
         card.innerHTML=`<img src="${purl}" style="height:${ih};object-fit:cover;"/>
 <div class="ilab" style="background:#EEEDFE;color:#3C3489;font-weight:600;">🎨 Poster · ${selImgModel} · ${posterText==='yes'?'มีตัวหนังสือ':'ไม่มีตัวหนังสือ'} · ${posterPerson==='yes'?'มีคน':'Product Only'}</div>
-<div class="iact"><a class="iabtn" href="${purl}" target="_blank">🔍 เปิด</a><button class="iabtn" onclick="downloadImg('${purl}','poster')">⬇ โหลด</button></div>`;
+<div class="iact"><button class="iabtn" onclick="openImg('${purl}')">🔍 เปิดดู</button><button class="iabtn" onclick="downloadImg('${purl}','poster')">⬇ โหลด</button></div>`;
         document.getElementById('imgGrid').prepend(card);
         document.getElementById('imgBadge').textContent=imgDone+1;
       }
