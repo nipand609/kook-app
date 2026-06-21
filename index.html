@@ -240,13 +240,14 @@ textarea{resize:vertical;line-height:1.6;}
   <div class="g2">
     <div class="field"><label class="lbl">สไตล์ภาพ</label>
       <select id="imgStyle">
-        <option value="cinematic commercial">Cinematic Commercial</option>
-        <option value="lifestyle photography">Lifestyle Photography</option>
-        <option value="TikTok viral style">TikTok Viral</option>
-        <option value="Shopee product review">Shopee Review</option>
-        <option value="dark cinematic">Dark Cinematic</option>
-        <option value="handheld vlog style">Handheld Vlog</option>
-        <option value="minimal clean">Minimal Clean</option>
+        <option value="ultra realistic cinematic commercial photography, dramatic lighting, high contrast">Cinematic Commercial</option>
+        <option value="soft lifestyle photography, natural warm light, authentic everyday moment">Lifestyle Photography</option>
+        <option value="dark cinematic, moody dramatic lighting, deep shadows, film noir atmosphere">Dark Cinematic</option>
+        <option value="handheld vlog style, candid authentic, natural light, travel documentary feel">Handheld Vlog</option>
+        <option value="luxury minimal, clean background, negative space, high fashion editorial">Luxury Minimal</option>
+        <option value="3D Pixar animation style, vibrant colors, expressive characters, Disney-Pixar render quality, smooth 3D CGI">3D Pixar Animation</option>
+        <option value="anime illustration style, Japanese anime art, beautiful detailed characters, sexy cool aesthetic, cel-shaded, high quality manga coloring, vivid colors">อนิเมะ (Anime Style)</option>
+        <option value="semi-realistic anime style, beautiful detailed face, Korean webtoon art style, cinematic lighting, hyper detailed illustration">Webtoon / Semi-Realistic Anime</option>
       </select>
     </div>
     <div class="field"><label class="lbl">แพลตฟอร์ม</label>
@@ -565,6 +566,91 @@ Character Identity: ${concept.characterIdentity||'-'}
   });
 }
 
+// ── Character Sheet ───────────────────────────────────────────────────
+function showCharacterSheet(charData, typeName){
+  const panel=document.getElementById('panelScript');
+  panel.innerHTML='';
+  // World Setting
+  const worldBlock=document.createElement('div');worldBlock.className='scene-block';worldBlock.style.marginBottom='12px';
+  worldBlock.innerHTML=`<div class="scene-hdr"><span class="scene-num">🌍 World</span><span class="scene-ttl">${typeName}</span></div>
+<div class="scene-body">
+<div style="font-size:13px;color:#555;line-height:1.8;"><b>โลกและบรรยากาศ:</b> ${charData.worldSetting||'-'}<br><b>ความขัดแย้งหลัก:</b> ${charData.mainConflict||'-'}</div>
+</div>`;
+  panel.appendChild(worldBlock);
+  // Characters
+  (charData.characters||[]).forEach(ch=>{
+    const block=document.createElement('div');block.className='scene-block';block.style.marginBottom='12px';
+    const encBase=encodeURIComponent(ch.imagePromptBase||ch.appearance||ch.name);
+    block.innerHTML=`<div class="scene-hdr" style="background:#1a1a1a;">
+<span class="scene-num" style="background:#f5a623;color:#fff;">${ch.role||'ตัวละคร'}</span>
+<span class="scene-ttl" style="color:#fff;">⚔️ ${ch.name}</span>
+</div>
+<div class="scene-body">
+<div class="g2" style="margin-bottom:10px;">
+  <div style="font-size:13px;line-height:1.9;">
+    <div><b>อายุ:</b> ${ch.age||'-'}</div>
+    <div><b>รูปลักษณ์:</b> ${ch.appearance||'-'}</div>
+    <div><b>บุคลิก:</b> ${ch.personality||'-'}</div>
+    <div><b>พลัง:</b> ${ch.power||'-'}</div>
+  </div>
+</div>
+<div class="sec-lbl">📸 Image Prompt Base (ใช้สร้างรูปตัวละคร)</div>
+<div class="prompt-box" id="charbase-${ch.name}">${ch.imagePromptBase||ch.appearance||'-'}</div>
+<button class="copy-btn" onclick="copyText(document.getElementById('charbase-${ch.name}').textContent,this)">📋 คัดลอก</button>
+</div>`;
+    panel.appendChild(block);
+  });
+  // Generate scenes button
+  const genBtn=document.createElement('div');
+  genBtn.innerHTML=`<div style="background:#EEEDFE;border:1.5px solid #534AB7;border-radius:10px;padding:14px;text-align:center;margin-bottom:12px;">
+<div style="font-size:13px;color:#3C3489;margin-bottom:8px;">✅ Character Sheet สร้างเสร็จแล้ว — ตรวจสอบตัวละครแล้วกดสร้างซีนได้เลย</div>
+<div style="font-size:11px;color:#aaa;margin-bottom:10px;">Scenes จะถูกเพิ่มด้านล่างหลังจาก AI สร้างสคริปต์เสร็จ</div>
+</div>`;
+  panel.appendChild(genBtn);
+}
+
+function appendScenesToScript(scenes,voiceStyle){
+  buildScriptPanel(scenes,concept,selTypeName,voiceStyle);
+}
+
+// ── Regenerate single scene image ─────────────────────────────────────
+let _veKeyCache='';
+async function regenScene(sceneNum){
+  const sc=window._lastScenes&&window._lastScenes.find(s=>s.scene===sceneNum);
+  if(!sc){alert('ไม่พบข้อมูลซีนนี้');return;}
+  const btn=document.getElementById('regen-'+sceneNum);
+  if(btn){btn.textContent='⏳';btn.disabled=true;}
+  try{
+    if(!_veKeyCache){
+      const rows=await sb('GET','settings?id=eq.main&select=ve_api_key');
+      _veKeyCache=rows&&rows[0]&&rows[0].ve_api_key||'';
+    }
+    if(!_veKeyCache){alert('ไม่มี API Key');return;}
+    const newUid=runId()+'-regen-'+sceneNum;
+    const url=await callImage(_veKeyCache,sc.imagePrompt,newUid);
+    if(url){
+      sc.imgUrl=url;
+      const ih=selSize==='1792x1024'?'100px':selSize==='1024x1024'?'150px':'180px';
+      const card=document.getElementById('imgcard-'+sceneNum);
+      if(card) card.innerHTML=`<img src="${url}" style="height:${ih};"/>
+<div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
+<div class="iact">
+  <a class="iabtn" href="${url}" target="_blank">🔍 เปิด</a>
+  <button class="iabtn" onclick="downloadImg('${url}','scene_${sc.scene}')">⬇ โหลด</button>
+  <button class="iabtn" id="regen-${sceneNum}" onclick="regenScene(${sceneNum})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄</button>
+</div>`;
+      // อัปเดต badge
+      const done=window._lastScenes.filter(s=>s.imgUrl).length;
+      document.getElementById('imgBadge').textContent=done;
+    }
+  }catch(e){
+    alert('สร้างใหม่ไม่ได้: '+e.message);
+    if(btn){btn.textContent='🔄';btn.disabled=false;}
+  }
+}
+
+let selTypeName='',concept={};
+
 // ── MAIN ENGINE ───────────────────────────────────────────────────────
 async function startEngine(){
   if(!currentUser){alert('กรุณา Login ก่อน');return;}
@@ -600,7 +686,11 @@ async function startEngine(){
 
   const noVoice=voiceStyle.includes('No dialogue');
   const RID=runId();
-  let scenes=[],concept={};
+  let scenes=[];
+  concept={};
+  selTypeName=typeName;
+  window._lastScenes=scenes;
+  _veKeyCache=veKey;
 
   // Camera angles
   const CAMERAS=['close-up face and product detail','wide establishing shot with environment depth','top-down overhead flat lay','low angle hero perspective looking up','high angle overview looking down','side profile golden ratio composition','over-the-shoulder POV shot','handheld vlog style dynamic movement'];
@@ -626,56 +716,120 @@ Platform: ${platform}
     try{concept=JSON.parse(rawC.replace(/```json|```/g,'').trim());}
     catch(e){concept={product:desc,characterIdentity:extra||'',posterHook:'ดีที่สุด!',posterScene:'cinematic scene',productName:desc.slice(0,20),tagline:'คุณภาพคุ้มค่า'};}
 
+    // Step 1B: Character Sheet (เฉพาะสายเรื่องสั้น)
+    const isStory=typeName.includes('เรื่องสั้น');
+    if(isStory){
+      setStep(1,'sr','สร้าง Character Sheet...');
+      log('  → สร้าง Character Sheet สำหรับเรื่องสั้น');
+      try{
+        const sysChar=`คุณคือ Creative Director ผู้เชี่ยวชาญการสร้างเรื่องสั้น
+สร้าง Character Sheet สำหรับเรื่อง: ${desc}
+ตอบ JSON บรรทัดเดียว ไม่มี markdown:
+{"characters":[{"name":"ชื่อตัวละคร","role":"บทบาท เช่น ตัวเอก/ตัวร้าย/ผู้ช่วย","age":"อายุ","appearance":"รูปลักษณ์ละเอียด: ใบหน้า ผม สีตา ผิว เสื้อผ้าหลัก เครื่องประดับ เอกลักษณ์","personality":"นิสัยและบุคลิก","power":"พลัง/ความสามารถพิเศษ","imagePromptBase":"[ENGLISH: character base description for consistent image generation: face, hair, outfit, accessories, distinguishing features]"}],"worldSetting":"คำอธิบายโลกและบรรยากาศ","mainConflict":"ความขัดแย้งหลักของเรื่อง","visualStyle":"${imgStyle}"}`;
+        const rawChar=await callGPT52(veKey,sysChar,`เรื่อง: ${desc}\n${extra?'รายละเอียด: '+extra:''}`);
+        const charData=JSON.parse(rawChar.replace(/```json|```/g,'').trim());
+        concept.charSheet=charData;
+        // แสดง Character Sheet ใน panelScript
+        showCharacterSheet(charData,typeName);
+        document.getElementById('outCard').style.display='block';showTab('script');
+      }catch(e){log('  ⚠️ Character Sheet: '+e.message);}
+    }
+
     // Step 1B: Scenes ทีละซีน
-    const sysScene=`คุณคือ Kook Content Engine V2
+    const sysScene=`คุณคือ Kook Content Engine V2 — Creative Director ระดับ Top
 ประเภท: ${typeName}
 Scene Logic: ${typeLogic}
+${concept.charSheet?'Character Sheet: '+JSON.stringify(concept.charSheet):''}
 
 IMPORTANT RULES:
 - แต่ละซีนต้องไม่ซ้ำกัน ทั้งอารมณ์ ภาพ มุมกล้อง เหตุการณ์
-- คุมสินค้า ตัวละคร ชุด ทรงผม แสง สี mood ให้เหมือนเดิมทุกซีน
-- Character Identity: ${concept.characterIdentity||extra||'ตามที่วิเคราะห์ได้'}
-- Product Identity: ${concept.productIdentity||desc}
+- คุมตัวละคร ชุด ทรงผม แสง สี mood ให้เหมือนเดิมทุกซีน
+- Character: ${concept.characterIdentity||extra||'ตามที่วิเคราะห์ได้'}
 - ${RH}
-- ถ้ามีรูป Reference ให้ใช้เป็น reference เท่านั้น ห้าม copy รูปต้นฉบับ
-- ถ้าเป็นสายเรื่องสั้น ต้องคุมตัวละครหลักให้เหมือนกันทุกฉาก
+- ถ้ามีรูป Reference ให้ใช้เป็น reference เท่านั้น ห้าม copy
 - Prompt ต้องละเอียด พร้อมนำไปสร้างภาพและวิดีโอได้ทันที
 
+VOICE-OVER RULES (สำคัญมาก):
+- บทพูดต้องสั้น กระชับ ลึก 20-30 คำเท่านั้น
+- ขึ้นต้นด้วยประโยคที่ทำให้คนหยุดฟัง เช่น "รู้ไหม…" "ไม่มีใครรู้ว่า…" "มันเริ่มต้นจาก…"
+- ห้ามบอกเล่าตรงๆ ให้พูดแบบ hint ลึกลับ ปล่อยให้คนดูอยากรู้ต่อ
+- บทพูดต้องเชื่อมกับภาพซีนนั้นโดยตรง ไม่ใช่บรรยายทั่วไป
+- ตัวอย่างดี: "รู้ไหม…ทุกคนมีไพรีติดตัวมาแต่เกิด แต่คนทั่วไปมองไม่เห็น นาราเห็น—และมีถึงสองตัว"
+- ตัวอย่างดี: "ไม่มีใครรู้ว่าเงาที่ซ้อนอยู่ข้างหลัง…ไม่ใช่เงาของเธอ"
+- ตัวอย่างเลว: "ในซีนนี้ตัวละครกำลังทำ..." (ห้ามเด็ดขาด)
+
 สร้าง 1 ซีนเท่านั้น ตอบ JSON บรรทัดเดียว ไม่มี markdown:
-{"scene":0,"title":"ชื่อซีนภาษาไทย","imagePrompt":"[ENGLISH: Ultra realistic 2x4 grid 8 panels ${selRatio} ${imgStyle}. SCENE_DESCRIPTION. Character: ${concept.characterIdentity||extra||'as described'}. Product: ${concept.productIdentity||desc}. ${RH} Same character same outfit same hairstyle same product same lighting same color grading same mood. Camera: CAMERA_ANGLE. No text overlay. No watermark. Unique scene ID: RUNID.]","videoPrompt":"[ENGLISH: Ultra realistic cinematic 10s. Same character same outfit same hairstyle same product same lighting same color grading same mood. Camera direction: Shot1:X Shot2:X Shot3:X Shot4:X Shot5:X Shot6:X Shot7:X Shot8:X. Voice starts after 0.50 seconds. ${noVoice?'No dialogue. Sound design only.':''}]","voiceOver":"${noVoice?'':' บทพูดภาษาไทย 20-30 คำ'}","voiceStyle":"${voiceStyle}","soundDesign":"${noVoice?'• Ambient • Environment • Transition • Emotion':''}","musicStyle":"${noVoice?'Soft cinematic / Dark fantasy / etc':''}"}`;
+{"scene":0,"title":"ชื่อซีนภาษาไทย","imagePrompt":"[ENGLISH: 2x4 grid 8 panels ${selRatio} ${imgStyle}. SCENE_DESCRIPTION. Character: CHAR_ID. ${RH} Same character same outfit same hairstyle same lighting same color grading same mood throughout. Camera: CAMERA_ANGLE. No text overlay. No watermark. ID:RUNID]","videoPrompt":"[ENGLISH: Ultra realistic cinematic 10s video. SCENE_DESCRIPTION. Same character same outfit same hairstyle same lighting same mood. Shot1:X Shot2:X Shot3:X Shot4:X Shot5:X Shot6:X Shot7:X Shot8:X. Voice starts after 0.50 seconds.]","voiceOver":"${noVoice?'':' บทพูด 20-30 คำ ขึ้นต้นด้วยประโยคดึงดูด เชื่อมกับภาพซีนนี้โดยตรง'}","voiceStyle":"${voiceStyle}","soundDesign":"${noVoice?'• Ambient • Environment • Transition • Emotion':''}","musicStyle":"${noVoice?'เช่น Dark Fantasy / Horror Ambience / etc':''}"}`;
+
+    const CHAR_ID=concept.charSheet?concept.charSheet.characters.map(c=>`${c.name}: ${c.imagePromptBase||c.appearance}`).join(' | '):(concept.characterIdentity||extra||'as described');
 
     for(let i=1;i<=sceneCount;i++){
       setStep(1,'sr','สร้างซีน '+i+'/'+sceneCount);
       const {p,c}=getSceneImgs(i);
       const cam=CAMERAS[(i-1)%CAMERAS.length];
       const prev=scenes.map(s=>s.title).join(' | ');
-      const msg=`เนื้อหา: ${desc}\nสไตล์: ${imgStyle}\nซีนที่: ${i}/${sceneCount}\nCamera angle: ${cam}\n${extra?'รายละเอียดตัวละคร/บรรยากาศ: '+extra:''}\n${prev?'ซีนก่อนหน้า (ต้องไม่ซ้ำ): '+prev:''}\nRunID: ${RID}-s${i}`;
+      const msg=`เนื้อหา: ${desc}\nสไตล์: ${imgStyle}\nซีนที่: ${i}/${sceneCount}\nCamera: ${cam}\n${extra?'รายละเอียด: '+extra:''}\n${prev?'ซีนก่อนหน้า (ต้องไม่ซ้ำ): '+prev:''}\nRunID: ${RID}-s${i}`;
       try{
-        const raw=await callGPT52(veKey,sysScene.replace('CAMERA_ANGLE',cam).replace('SCENE_DESCRIPTION','unique cinematic scene #'+i).replace('RUNID',RID+'-s'+i),buildImgContent([...p,...c],msg));
+        const raw=await callGPT52(veKey,
+          sysScene.replace('CAMERA_ANGLE',cam).replace('SCENE_DESCRIPTION','unique cinematic scene #'+i).replace('RUNID',RID+'-s'+i).replace('CHAR_ID',CHAR_ID),
+          buildImgContent([...p,...c],msg));
         const sc=JSON.parse(raw.replace(/```json|```/g,'').trim());
-        sc.scene=i;scenes.push(sc);
+        sc.scene=i; sc._refImgs=[...p,...c];
+        scenes.push(sc);
         log('  ✅ ซีน '+i+': '+sc.title);
       }catch(e){log('  ❌ ซีน '+i+': '+e.message);}
     }
     if(!scenes.length)throw new Error('สร้างสคริปต์ไม่ได้ กรุณาตรวจสอบ API Key');
-    buildScriptPanel(scenes,concept,typeName,voiceStyle);
-    document.getElementById('outCard').style.display='block';showTab('script');
+    if(!isStory){
+      buildScriptPanel(scenes,concept,typeName,voiceStyle);
+      document.getElementById('outCard').style.display='block';showTab('script');
+    } else {
+      appendScenesToScript(scenes,voiceStyle);
+    }
     setStep(1,'sd','✅ '+scenes.length+' ซีน');
 
-    // Step 2: Images
-    setStep(2,'sr','สร้างรูป...');log('\n[2/3] สร้างรูป '+scenes.length+' ซีน');
-    for(let i=0;i<scenes.length;i++){
-      const sc=scenes[i];setStep(2,'sr','ซีน '+(i+1)+'/'+scenes.length);
-      try{
-        const url=await callImage(veKey,sc.imagePrompt,RID+'-img-'+sc.scene);
-        if(url){
-          sc.imgUrl=url;
-          const ih=selSize==='1792x1024'?'100px':selSize==='1024x1024'?'150px':'180px';
-          const card=document.createElement('div');card.className='imgcard';
-          card.innerHTML=`<img src="${url}" style="height:${ih};"/><div class="ilab">ซีน ${sc.scene}: ${sc.title}</div><div class="iact"><a class="iabtn" href="${url}" target="_blank">🔍 เปิด</a><button class="iabtn" onclick="downloadImg('${url}','scene_${sc.scene}')">⬇ โหลด</button></div>`;
-          document.getElementById('imgGrid').appendChild(card);
+    // Step 2: สร้างรูป parallel (3 พร้อมกัน — เร็วขึ้น 3x)
+    setStep(2,'sr','สร้างรูป (parallel)...');
+    log('\n[2/3] สร้างรูป '+scenes.length+' ซีน (3 พร้อมกัน)');
+    const ih=selSize==='1792x1024'?'100px':selSize==='1024x1024'?'150px':'180px';
+
+    // สร้าง placeholder cards ก่อน
+    document.getElementById('imgGrid').innerHTML='';
+    scenes.forEach(sc=>{
+      const card=document.createElement('div');card.className='imgcard';card.id='imgcard-'+sc.scene;
+      card.innerHTML=`<div style="height:${ih};background:#f0eeea;display:flex;align-items:center;justify-content:center;"><div style="text-align:center;color:#aaa;font-size:12px;">⏳ ซีน ${sc.scene}<br>กำลังสร้าง...</div></div>
+<div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
+<div class="iact"><button class="iabtn" id="regen-${sc.scene}" onclick="regenScene(${sc.scene})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄 สร้างใหม่</button></div>`;
+      document.getElementById('imgGrid').appendChild(card);
+    });
+    document.getElementById('outCard').style.display='block';
+    showTab('images');
+
+    // สร้างรูป 3 พร้อมกัน
+    const BATCH=3;
+    for(let i=0;i<scenes.length;i+=BATCH){
+      const batch=scenes.slice(i,i+BATCH);
+      setStep(2,'sr','ซีน '+(i+1)+'-'+Math.min(i+BATCH,scenes.length)+'/'+scenes.length);
+      await Promise.all(batch.map(async sc=>{
+        try{
+          const url=await callImage(veKey,sc.imagePrompt,RID+'-img-'+sc.scene);
+          if(url){
+            sc.imgUrl=url;
+            const card=document.getElementById('imgcard-'+sc.scene);
+            if(card) card.innerHTML=`<img src="${url}" style="height:${ih};"/>
+<div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
+<div class="iact">
+  <a class="iabtn" href="${url}" target="_blank">🔍 เปิด</a>
+  <button class="iabtn" onclick="downloadImg('${url}','scene_${sc.scene}')">⬇ โหลด</button>
+  <button class="iabtn" id="regen-${sc.scene}" onclick="regenScene(${sc.scene})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄</button>
+</div>`;
+          }
+        }catch(e){
+          log('  ❌ ซีน '+sc.scene+': '+e.message);
+          const card=document.getElementById('imgcard-'+sc.scene);
+          if(card) card.querySelector('div').innerHTML=`<div style="padding:12px;text-align:center;color:#c0392b;font-size:12px;">❌ ซีน ${sc.scene} ล้มเหลว<br><button onclick="regenScene(${sc.scene})" style="margin-top:6px;padding:4px 10px;border:1px solid #AFA9EC;border-radius:6px;cursor:pointer;background:#EEEDFE;color:#3C3489;font-size:11px;">🔄 ลองใหม่</button></div>`;
         }
-      }catch(e){log('  ❌ '+e.message);}
+      }));
     }
     const imgDone=scenes.filter(s=>s.imgUrl).length;
     document.getElementById('imgBadge').textContent=imgDone;
