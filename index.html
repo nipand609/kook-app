@@ -83,8 +83,8 @@ textarea{resize:vertical;line-height:1.6;}
 .stico{font-size:18px;margin-bottom:3px;}.stlbl{font-size:13px;font-weight:600;color:#1a1a1a;}.stsub{font-size:11px;color:#999;margin-top:2px;line-height:1.4;}
 
 /* Buttons */
-.runbtn{width:100%;padding:14px;font-size:15px;font-weight:600;background:#534AB7;color:#fff;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
-.runbtn:hover{background:#3C3489;}.runbtn:disabled{opacity:.4;cursor:not-allowed;}
+.runbtn{width:100%;padding:14px;font-size:15px;font-weight:600;background:#534AB7;color:#fff;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,opacity .2s;}
+.runbtn:hover:not(:disabled){filter:brightness(1.1);}.runbtn:disabled{opacity:.35;cursor:not-allowed;}
 
 /* Progress */
 .pstep{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f0eeea;}
@@ -281,38 +281,15 @@ textarea{resize:vertical;line-height:1.6;}
     </div>
   </div>
 
-  <!-- Script Model Selector -->
+  <!-- Script Model: gpt-5.2 only -->
   <div class="field">
     <label class="lbl">โมเดลสร้างสคริปต์ / Hook / Voice-over</label>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-      <button class="imgmbtn" id="sm_haiku" onclick="setScriptModel('claude-haiku-4-5-20251001',this)">
-        <div style="font-size:15px;margin-bottom:2px;">⚡</div>
-        <div style="font-size:12px;font-weight:600;">Claude Haiku</div>
-        <div style="font-size:10px;color:#999;">เร็วสุด · ประหยัด</div>
-        <div style="font-size:10px;color:#145a32;margin-top:2px;">1.0/5.0 per 1M token</div>
+    <div style="display:flex;">
+      <button class="imgmbtn on" id="sm_gpt52" style="max-width:200px;cursor:default;">
+        <div style="font-size:18px;margin-bottom:3px;">🤖</div>
+        <div style="font-size:13px;font-weight:600;">GPT-5.2</div>
+        <div style="font-size:10px;color:#999;">OpenAI · สร้างสคริปต์</div>
       </button>
-      <button class="imgmbtn on" id="sm_sonnet" onclick="setScriptModel('claude-sonnet-4-6',this)">
-        <div style="font-size:15px;margin-bottom:2px;">✨</div>
-        <div style="font-size:12px;font-weight:600;">Claude Sonnet ⭐</div>
-        <div style="font-size:10px;color:#999;">สมดุล · แนะนำ</div>
-        <div style="font-size:10px;color:#534AB7;margin-top:2px;">3.0/15.0 per 1M token</div>
-      </button>
-      <button class="imgmbtn" id="sm_opus" onclick="setScriptModel('claude-opus-4-8',this)">
-        <div style="font-size:15px;margin-bottom:2px;">👑</div>
-        <div style="font-size:12px;font-weight:600;">Claude Opus</div>
-        <div style="font-size:10px;color:#999;">ฉลาดสุด · งานซับซ้อน</div>
-        <div style="font-size:10px;color:#f5a623;margin-top:2px;">5.0/25.0 per 1M token</div>
-      </button>
-      <button class="imgmbtn" id="sm_gpt52" onclick="setScriptModel('gpt-5.2',this)">
-        <div style="font-size:15px;margin-bottom:2px;">🤖</div>
-        <div style="font-size:12px;font-weight:600;">GPT-5.2</div>
-        <div style="font-size:10px;color:#999;">OpenAI · ใช้อยู่เดิม</div>
-        <div style="font-size:10px;color:#999;margin-top:2px;">0.875/M token</div>
-      </button>
-      <button class="imgmbtn" id="sm_sonnet46" onclick="setScriptModel('claude-sonnet-4-6',this)" style="display:none;"></button>
-    </div>
-    <div style="font-size:11px;background:#EEEDFE;color:#3C3489;padding:7px 10px;border-radius:8px;margin-top:8px;">
-      💡 Claude เขียน Hook และ Voice-over ภาษาไทยได้เป็นธรรมชาติกว่า GPT-5.2 มาก — แนะนำใช้ Sonnet สำหรับงานเรื่องสั้น
     </div>
   </div>
   <div class="field"><label class="lbl">ขนาดรูป</label>
@@ -324,27 +301,21 @@ textarea{resize:vertical;line-height:1.6;}
   </div>
   <div class="field">
     <label class="lbl">โมเดลสร้างรูป</label>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;" id="imgModelGrid">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;" id="imgModelGrid">
       <button class="imgmbtn on" id="im_gpt2" onclick="setImgModel('gpt-image-2',this)">
         <div style="font-size:15px;margin-bottom:2px;">🎨</div>
-        <div style="font-size:12px;font-weight:600;">gpt-image-2</div>
+        <div style="font-size:12px;font-weight:600;">GPT Image 2</div>
         <div style="font-size:10px;color:#999;">คุณภาพสูง · รองรับ reference</div>
-        <div style="font-size:10px;color:#f5a623;margin-top:2px;">~0.155 token/รูป · ~140s</div>
+        <div style="font-size:10px;color:#f5a623;margin-top:2px;">~0.155 token/รูป</div>
       </button>
-      <button class="imgmbtn" id="im_qwen25" onclick="setImgModel('qwen-image-2.0-2026-03-03',this)">
+      <button class="imgmbtn" id="im_qwen" onclick="setImgModel('qwen-image-2.0-2026-03-03',this)">
         <div style="font-size:15px;margin-bottom:2px;">⚡</div>
-        <div style="font-size:12px;font-weight:600;">qwen-image-2.0 (Mar 2026)</div>
+        <div style="font-size:12px;font-weight:600;">Qwen Image 2.0</div>
         <div style="font-size:10px;color:#999;">✅ text ดี · เร็ว · ประหยัด</div>
         <div style="font-size:10px;color:#145a32;margin-top:2px;">~0.026 token/รูป · แนะนำ</div>
       </button>
-      <button class="imgmbtn" id="im_gpt15" onclick="setImgModel('gpt-image-1.5',this)">
-        <div style="font-size:15px;margin-bottom:2px;">💎</div>
-        <div style="font-size:12px;font-weight:600;">gpt-image-1.5</div>
-        <div style="font-size:10px;color:#999;">OpenAI · คุณภาพสูงสุด</div>
-        <div style="font-size:10px;color:#534AB7;margin-top:2px;">เวอร์ชันใหม่ล่าสุด</div>
-      </button>
     </div>
-    <div style="font-size:11px;color:#aaa;margin-top:6px;">💡 แนะนำ: ลอง qwen-image-2.0 ก่อน ถูกกว่า 12x และ text rendering ดีมาก</div>
+    <div style="font-size:11px;color:#aaa;margin-top:6px;">💡 แนะนำ: ลอง Qwen ก่อน ถูกกว่า 6x และ text rendering ดีมาก</div>
   </div>
   <div class="field">
     <label class="lbl">รายละเอียดเพิ่มเติม / คาแรกเตอร์ / บรรยากาศ</label>
@@ -395,7 +366,10 @@ textarea{resize:vertical;line-height:1.6;}
   <div style="font-size:11px;color:#aaa;margin-top:3px;" id="costBreak"></div>
 </div>
 
-<button class="runbtn" id="runBtn" onclick="startEngine()">✨ สร้าง Content</button>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+  <button class="runbtn" id="scriptBtn" onclick="startScript()" style="background:#534AB7;">✍️ สร้างสคริปต์</button>
+  <button class="runbtn" id="imageBtn" onclick="startImages()" style="background:#16a34a;" disabled>🎨 สร้างรูป</button>
+</div>
 
 <!-- PROGRESS -->
 <div class="card" id="progCard" style="display:none;margin-top:14px;">
@@ -429,7 +403,7 @@ let currentUser=null;
 let prodImages=[], charImages=[], analysisResult=null;
 let selSize='1024x1792', selRatio='9:16';
 let selImgModel='gpt-image-2';
-let selScriptModel='claude-sonnet-4-6'; // default Claude Sonnet
+let selScriptModel='gpt-5.2'; // gpt-5.2 only
 
 function setImgModel(model, btn){
   selImgModel=model;
@@ -439,9 +413,6 @@ function setImgModel(model, btn){
 
 function setScriptModel(model, btn){
   selScriptModel=model;
-  // หา parent grid แล้ว reset เฉพาะปุ่ม script model
-  btn.closest('div[style*="grid"]').querySelectorAll('.imgmbtn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
 }
 let posterText='yes', posterPerson='yes', posterStyle='cinematic_commercial';
 
@@ -560,8 +531,18 @@ function setStep(n,s,sub){document.getElementById('pi'+n).className='pico '+s;do
 function showTab(t){['script','images'].forEach(k=>{const K=k[0].toUpperCase()+k.slice(1);document.getElementById('panel'+K).style.display=k===t?'block':'none';document.getElementById('tab'+K).className='tabt'+(k===t?' on':'');});}
 function copyText(text,btn){navigator.clipboard.writeText(text).then(()=>{btn.textContent='✅ คัดลอกแล้ว';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 คัดลอก';btn.classList.remove('copied');},2500);});}
 function openImg(url){
-  // เปิดรูปในแท็บใหม่ — ใช้ window.open เพราะ URL มี signed token
-  window.open(url,'_blank','noopener');
+  // เปิดรูปใน modal overlay แทน — แก้ปัญหา Qwen URL กลายเป็น download
+  let modal=document.getElementById('imgViewModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='imgViewModal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    modal.innerHTML='<div style="position:relative;max-width:95vw;max-height:92vh;"><img id="imgViewImg" style="max-width:100%;max-height:88vh;border-radius:10px;display:block;"/><button onclick="document.getElementById('imgViewModal').style.display='none'" style="position:absolute;top:-14px;right:-14px;width:32px;height:32px;border-radius:50%;background:#fff;border:none;cursor:pointer;font-size:18px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.4);">✕</button></div>';
+    modal.addEventListener('click',function(e){if(e.target===modal)modal.style.display='none';});
+    document.body.appendChild(modal);
+  }
+  document.getElementById('imgViewImg').src=url;
+  modal.style.display='flex';
 }
 function downloadImg(url,name){
   // ดาวน์โหลดผ่าน fetch → blob → click
@@ -815,8 +796,23 @@ async function regenScene(sceneNum){
 
 let selTypeName='',concept={};
 
+
+// ── SPLIT BUTTONS ────────────────────────────────────────────────────
+let _scriptDone = false;
+
+async function startScript(){
+  _scriptDone = false;
+  document.getElementById('imageBtn').disabled = true;
+  await startEngine('script-only');
+}
+
+async function startImages(){
+  if(!_scriptDone){ alert('กรุณาสร้างสคริปต์ก่อนครับ'); return; }
+  await startEngine('images-only');
+}
+
 // ── MAIN ENGINE ───────────────────────────────────────────────────────
-async function startEngine(){
+async function startEngine(mode){
   if(!currentUser){alert('กรุณา Login ก่อน');return;}
   const typeName=document.getElementById('selTypeName').value;
   const typeLogic=document.getElementById('selTypeLogic').value;
@@ -833,14 +829,18 @@ async function startEngine(){
   const totalCost=sceneCount+1;
 
   if(!typeName){alert('กรุณาเลือกประเภท Content ก่อนครับ');return;}
-  if(!desc){alert('กรุณากรอกรายละเอียดสินค้า / เรื่อง');return;}
+  if(!desc&&mode!=='images-only'){alert('กรุณากรอกรายละเอียดสินค้า / เรื่อง');return;}
 
   let veKey='';
   try{veKey=await getVeApiKey();}catch(e){alert('เชื่อมต่อ server ไม่ได้');return;}
   if(!veKey){alert('Admin ยังไม่ได้ตั้งค่า API Key');return;}
-  if(!await deductToken(totalCost))return;
+  // images-only: deduct เฉพาะค่ารูป (sceneCount+1) แต่สคริปต์ deduct ไปแล้ว
+  if(mode!=='images-only'){
+    if(!await deductToken(totalCost))return;
+  }
 
-  document.getElementById('runBtn').disabled=true;
+  document.getElementById('scriptBtn').disabled=true;
+  document.getElementById('imageBtn').disabled=true;
   document.getElementById('progCard').style.display='block';
   document.getElementById('outCard').style.display='none';
   document.getElementById('logBox').textContent='';
@@ -853,20 +853,30 @@ async function startEngine(){
   let scenes=[];
   concept={};
   selTypeName=typeName;
-  window._lastScenes=scenes;
+  if(mode === 'images-only' && window._lastScenes && window._lastScenes.length){
+    scenes = window._lastScenes;
+    concept = window._lastConcept || {};
+    log('\n[images-only] ใช้สคริปต์เดิม '+scenes.length+' ซีน');
+    // ข้ามไป step 2 โดยใช้ flag
+  } else {
+    window._lastScenes=scenes;
+  }
   _veKeyCache=veKey;
 
   // Camera angles
   const CAMERAS=['close-up face and product detail','wide establishing shot with environment depth','top-down overhead flat lay','low angle hero perspective looking up','high angle overview looking down','side profile golden ratio composition','over-the-shoulder POV shot','handheld vlog style dynamic movement'];
 
   try{
-    // Step 0: Analysis
+    // Step 0: Analysis (ข้ามถ้า images-only)
+    if(mode !== 'images-only'){
     setStep(0,'sr','วิเคราะห์รูป...');
     log('[0] วิเคราะห์รูป '+(prodImages.length+charImages.length)+' รูป...');
     try{await runAnalysis(veKey,desc,sceneCount);}catch(e){log('  ⚠️ '+e.message);}
     setStep(0,'sd','✅ เสร็จ');
+    }
 
-    // Step 1: Concept
+    // Step 1: Concept (ข้ามถ้า images-only)
+    if(mode !== 'images-only'){
     setStep(1,'sr','วิเคราะห์คอนเซ็ปต์...');
     log('[1/3] สร้างสคริปต์ — '+typeName);
     const sysConcept=`คุณคือ Kook Content Engine V2
@@ -948,6 +958,7 @@ VOICE-OVER RULES (สำคัญมาก):
       }catch(e){log('  ❌ ซีน '+i+': '+e.message);}
     }
     if(!scenes.length)throw new Error('สร้างสคริปต์ไม่ได้ กรุณาตรวจสอบ API Key');
+    window._lastConcept = concept;
     if(!isStory){
       buildScriptPanel(scenes,concept,typeName,voiceStyle);
       document.getElementById('outCard').style.display='block';showTab('script');
@@ -955,6 +966,17 @@ VOICE-OVER RULES (สำคัญมาก):
       appendScenesToScript(scenes,voiceStyle);
     }
     setStep(1,'sd','✅ '+scenes.length+' ซีน');
+
+    } // end if(mode !== 'images-only') for step 1
+
+    // ── หลังสร้างสคริปต์เสร็จ ──
+    if(mode !== 'images-only') _scriptDone = true;
+    document.getElementById('imageBtn').disabled = false;
+    if(mode === 'script-only'){
+      log('\n✅ สร้างสคริปต์เสร็จแล้ว กด "สร้างรูป" เพื่อสร้างภาพประกอบ');
+      document.getElementById('scriptBtn').disabled = false;
+      return;
+    }
 
     // Step 2: สร้างรูป parallel (3 พร้อมกัน — เร็วขึ้น 3x)
     setStep(2,'sr','สร้างรูป (parallel)...');
@@ -1062,7 +1084,8 @@ Avoid: No watermark, no distortion, no wrong anatomy${posterText==='no'?', absol
   }catch(e){
     log('\n❌ Error: '+e.message);setStep(1,'se','❌ '+e.message);
   }
-  document.getElementById('runBtn').disabled=false;
+  document.getElementById('scriptBtn').disabled=false;
+  if(_scriptDone) document.getElementById('imageBtn').disabled=false;
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────
