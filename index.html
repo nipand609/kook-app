@@ -376,7 +376,6 @@ let prodImages=[], charImages=[], analysisResult=null;
 let selSize='1024x1792', selRatio='9:16';
 let selImgModel='gpt-image-2';
 let selScriptModel='gpt-5.2'; // gpt-5.2 only
-let selImgModel='gpt-image-2'; // gpt-image-2 only
 
 let posterText='yes', posterPerson='yes', posterStyle='cinematic_commercial';
 
@@ -501,7 +500,7 @@ function openImg(url){
     modal=document.createElement('div');
     modal.id='imgViewModal';
     modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-    modal.innerHTML='<div style="position:relative;max-width:95vw;max-height:92vh;"><img id="imgViewImg" style="max-width:100%;max-height:88vh;border-radius:10px;display:block;"/><button onclick="document.getElementById(\'imgViewModal\').style.display=\'none\'" style="position:absolute;top:-14px;right:-14px;width:32px;height:32px;border-radius:50%;background:#fff;border:none;cursor:pointer;font-size:18px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.4);">✕</button></div>';
+    modal.innerHTML=`<div style="position:relative;max-width:95vw;max-height:92vh;"><img id="imgViewImg" style="max-width:100%;max-height:88vh;border-radius:10px;display:block;"/><button onclick="document.getElementById('imgViewModal').style.display='none'" style="position:absolute;top:-14px;right:-14px;width:32px;height:32px;border-radius:50%;background:#fff;border:none;cursor:pointer;font-size:18px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.4);">✕</button></div>`;
     modal.addEventListener('click',function(e){if(e.target===modal)modal.style.display='none';});
     document.body.appendChild(modal);
   }
