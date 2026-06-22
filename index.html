@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Kook Content Engine V2</title>
+<title>Ravio — AI Content Studio</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -127,8 +127,8 @@ textarea{resize:vertical;line-height:1.6;}
 <div id="loginScreen">
 <div class="login-wrap">
   <div class="login-card">
-    <div class="login-logo">🎬 Kook <span>Content Engine</span></div>
-    <div class="login-sub">V2 — AI Image Creator</div>
+    <div class="login-logo">🎬 Rav<span>io</span></div>
+    <div class="login-sub">AI Content Studio</div>
     <div class="field">
       <label class="lbl">Key การใช้งาน</label>
       <input type="text" id="loginKey" placeholder="KCE-XXXXXXXXXXXX..." onkeydown="if(event.key==='Enter')doLogin()"/>
@@ -142,7 +142,7 @@ textarea{resize:vertical;line-height:1.6;}
 <!-- MAIN -->
 <div id="mainScreen" style="display:none;">
 <div class="topbar">
-  <div class="logo">🎬 Kook Content Engine <span>V2</span></div>
+  <div class="logo">🎬 Ravio <span>AI</span></div>
   <div style="display:flex;align-items:center;gap:10px;">
     <div style="text-align:right;">
       <div style="font-size:12px;color:#555;" id="userLabel"></div>
@@ -867,7 +867,7 @@ async function startEngine(mode){
     if(mode !== 'images-only'){
     setStep(1,'sr','วิเคราะห์คอนเซ็ปต์...');
     log('[1/3] สร้างสคริปต์ — '+typeName);
-    const sysConcept=`คุณคือ Kook Content Engine V2
+    const sysConcept=`คุณคือ Ravio AI
 ประเภท Content: ${typeName}
 Platform: ${platform}
 วิเคราะห์และตอบ JSON บรรทัดเดียว ไม่มี markdown:
@@ -902,7 +902,7 @@ Platform: ${platform}
     const styleEmphasis=isStylizedStyle(imgStyle)
       ? `\n🎨 สไตล์ภาพสำคัญมาก: ทุกซีนต้องเป็น "${imgStyle}" — ไม่ใช่ภาพถ่ายคนจริง ทุกตัวละครต้อง render เป็นสไตล์นี้เหมือนกันหมด`
       : '';
-    const sysScene=`คุณคือ Kook Content Engine V2 — Creative Director ระดับ Top
+    const sysScene=`คุณคือ Ravio AI — Creative Director ระดับ Top
 ประเภท: ${typeName}
 Scene Logic: ${typeLogic}
 รูปแบบภาพที่เลือก: ${imgStyle}${styleEmphasis}
