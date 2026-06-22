@@ -593,7 +593,11 @@ async function callGPT52(veKey,sys,userContent){
 }
 
 async function callImage(veKey,prompt,uid){
-  const allRefs=[...prodImages,...charImages];
+  return callImageWithRefs(veKey,prompt,uid,[...prodImages,...charImages]);
+}
+
+// เวอร์ชันรับ refs ตรงๆ — ใช้ได้พร้อมกันหลายตัวโดยไม่ตีกัน (สำหรับ poster ยิงพร้อมซีน)
+async function callImageWithRefs(veKey,prompt,uid,allRefs){
   const modelName=selImgModel;
   const full=prompt+`\n\nUnique scene ID: ${uid}. Reference images attached — use ONLY as identity reference for product/character. Do NOT copy original photos. Create completely new scene, new composition, new background.`;
 
@@ -613,13 +617,11 @@ async function callImage(veKey,prompt,uid){
   }
 
   // /generations — ใช้ได้กับทุกโมเดล
-  // เพิ่ม ref description ใน prompt
   let genPrompt=full;
   if(allRefs.length>0 && modelName!=='gpt-image-2'){
     genPrompt=prompt+`\n\nReference image description provided above. Maintain product and character identity consistency. Unique scene ID: ${uid}.`;
   }
 
-  // size mapping
   let imgSize=selSize;
 
   const res2=await fetch(VE_BASE+'/v1/images/generations',{
@@ -1023,53 +1025,7 @@ VOICE-OVER RULES (สำคัญมาก):
       return;
     }
 
-    // Step 2: สร้างรูป sequential (1 ต่อ 1 — ไม่ติดขัด)
-    setStep(2,'sr','สร้างรูป (Sequential)...');
-    log('\n[2/3] สร้างรูป '+scenes.length+' ซีน (1 ต่อ 1 - เสถียร)');
-    const ih=selSize==='1792x1024'?'100px':selSize==='1024x1024'?'150px':'180px';
-
-    // สร้าง placeholder cards ก่อน
-    document.getElementById('imgGrid').innerHTML='';
-    scenes.forEach(sc=>{
-      const card=document.createElement('div');card.className='imgcard';card.id='imgcard-'+sc.scene;
-      card.innerHTML=`<div style="height:${ih};background:#f0eeea;display:flex;align-items:center;justify-content:center;"><div style="text-align:center;color:#aaa;font-size:12px;">⏳ ซีน ${sc.scene}<br>กำลังสร้าง...</div></div>
-<div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
-<div class="iact"><button class="iabtn" id="regen-${sc.scene}" onclick="regenScene(${sc.scene})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄 สร้างใหม่</button></div>`;
-      document.getElementById('imgGrid').appendChild(card);
-    });
-    document.getElementById('outCard').style.display='block';
-    showTab('images');
-
-    // สร้างรูป 1 ต่อ 1 (sequential)
-    for(let i=0; i<scenes.length; i++){
-      const sc=scenes[i];
-      setStep(2,'sr','ซีน '+(i+1)+'/'+scenes.length);
-      try{
-        const url=await callImage(veKey,sc.imagePrompt,RID+'-img-'+sc.scene);
-        if(url){
-          sc.imgUrl=url;
-          const card=document.getElementById('imgcard-'+sc.scene);
-          if(card) card.innerHTML=`<img src="${url}" style="height:${ih};"/>
-<div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
-<div class="iact">
-  <button class="iabtn" onclick="openImg('${url}')">🔍 เปิดดู</button>
-  <button class="iabtn" onclick="downloadImg('${url}','scene_${sc.scene}')">⬇ โหลด</button>
-  <button class="iabtn" id="regen-${sc.scene}" onclick="regenScene(${sc.scene})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄</button>
-</div>`;
-          log('  ✅ ซีน '+sc.scene+' สร้างเสร็จ');
-        }
-      }catch(e){
-        log('  ❌ ซีน '+sc.scene+': '+e.message);
-        const card=document.getElementById('imgcard-'+sc.scene);
-        if(card) card.querySelector('div').innerHTML=`<div style="padding:12px;text-align:center;color:#c0392b;font-size:12px;">❌ ซีน ${sc.scene} ล้มเหลว<br><button onclick="regenScene(${sc.scene})" style="margin-top:6px;padding:4px 10px;border:1px solid #AFA9EC;border-radius:6px;cursor:pointer;background:#EEEDFE;color:#3C3489;font-size:11px;">🔄 ลองใหม่</button></div>`;
-      }
-    }
-    const imgDone=scenes.filter(s=>s.imgUrl).length;
-    document.getElementById('imgBadge').textContent=imgDone;
-    setStep(2,'sd','✅ '+imgDone+'/'+scenes.length);
-
-    // Step 3: Poster
-    setStep(3,'sr','สร้าง Poster...');log('\n[3/3] Poster');
+    // ── เตรียม Poster prompt ก่อน แล้วยิงพร้อมกับซีน (ไม่รอซีนเสร็จ) ──
     const pPIdx=analysisResult?Math.min(analysisResult.posterProdIndex||0,prodImages.length-1):0;
     const pCIdx=analysisResult?Math.min(analysisResult.posterCharIndex||0,charImages.length-1):0;
     const pProd=prodImages.length?[prodImages[pPIdx]]:[];
@@ -1081,7 +1037,7 @@ VOICE-OVER RULES (สำคัญมาก):
     const textRule=posterText==='yes'
       ?`Thai text REQUIRED in image: Main hook "${hook}" | Title "${pt}" | Sub-text "${ps}". Bold modern Thai font, clear readable, correct spelling, clean layout, no messy text.`
       :'NO TEXT at all. Pure visual storytelling. Absolutely no letters, words, or captions.';
-    const realismDirP=getRealismDirective(imgStyle); // directive เดียวกับซีน
+    const realismDirP=getRealismDirective(imgStyle);
     const personRule=posterPerson==='yes'
       ?`Include character. ${concept.characterIdentity||extra||''} ${realismDirP}`
       :'Product-only composition. NO human figures. Clean professional product photography.';
@@ -1096,31 +1052,101 @@ TEXT RULE: ${textRule}
 Visual direction: ${psc}. Hero shot center composition.
 ${realismDirP}
 Avoid: No watermark, no distortion, no wrong anatomy${posterText==='no'?', absolutely NO text of any kind':''}.`;
-    try{
-      // Poster — ใช้ callImage เลย (รองรับทุกโมเดล)
-      const pAllRefs=[...pProd,...pChar];
-      // inject refs เข้า prodImages/charImages ชั่วคราว
-      const _bkProd=[...prodImages],_bkChar=[...charImages];
-      if(pProd.length) prodImages.splice(0,prodImages.length,...pProd);
-      else prodImages.splice(0);
-      if(pChar.length) charImages.splice(0,charImages.length,...pChar);
-      else charImages.splice(0);
-      let purl=null;
-      try{ purl=await callImage(veKey,posterPrompt,RID+'-poster'); }catch(e){log('  [poster] '+e.message);}
-      // restore
-      prodImages.splice(0,prodImages.length,..._bkProd);
-      charImages.splice(0,charImages.length,..._bkChar);
 
+    // 🚀 ยิงโปสเตอร์ทันที (พร้อมกับซีน) — ใช้ refs ตรงๆ ไม่ตีกับซีน
+    setStep(3,'sr','สร้าง Poster (พร้อมซีน)...');log('\n[Poster] เริ่มสร้างพร้อมซีน...');
+    const posterPromise=(async()=>{
+      for(let attempt=1;attempt<=3;attempt++){
+        try{
+          const purl=await callImageWithRefs(veKey,posterPrompt,RID+'-poster'+(attempt>1?'-r'+attempt:''),[...pProd,...pChar]);
+          if(purl) return purl;
+        }catch(e){
+          if(attempt<3){log('  ⚠️ Poster ติดขัด ลองใหม่ '+attempt+'...');await new Promise(r=>setTimeout(r,1500*attempt));}
+          else log('  [poster] '+e.message);
+        }
+      }
+      return null;
+    })();
+
+    // Step 2: สร้างรูป Parallel 3 ใบพร้อมกัน + retry กันติดขัด
+    setStep(2,'sr','สร้างรูป (3 พร้อมกัน)...');
+    log('\n[2/3] สร้างรูป '+scenes.length+' ซีน (3 พร้อมกัน + retry)');
+    const ih=selSize==='1792x1024'?'100px':selSize==='1024x1024'?'150px':'180px';
+
+    // สร้าง placeholder cards ก่อน
+    document.getElementById('imgGrid').innerHTML='';
+    scenes.forEach(sc=>{
+      const card=document.createElement('div');card.className='imgcard';card.id='imgcard-'+sc.scene;
+      card.innerHTML=`<div style="height:${ih};background:#f0eeea;display:flex;align-items:center;justify-content:center;"><div style="text-align:center;color:#aaa;font-size:12px;">⏳ ซีน ${sc.scene}<br>กำลังสร้าง...</div></div>
+<div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
+<div class="iact"><button class="iabtn" id="regen-${sc.scene}" onclick="regenScene(${sc.scene})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄 สร้างใหม่</button></div>`;
+      document.getElementById('imgGrid').appendChild(card);
+    });
+    document.getElementById('outCard').style.display='block';
+    showTab('images');
+
+    // ฟังก์ชันสร้างรูป 1 ใบ + retry สูงสุด 2 ครั้งถ้าติดขัด
+    async function genOneImage(sc){
+      let lastErr=null;
+      for(let attempt=1; attempt<=3; attempt++){
+        try{
+          const url=await callImage(veKey,sc.imagePrompt,RID+'-img-'+sc.scene+(attempt>1?'-r'+attempt:''));
+          if(url){
+            sc.imgUrl=url;
+            const card=document.getElementById('imgcard-'+sc.scene);
+            if(card) card.innerHTML=`<img src="${url}" style="height:${ih};"/>
+<div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
+<div class="iact">
+  <button class="iabtn" onclick="openImg('${url}')">🔍 เปิดดู</button>
+  <button class="iabtn" onclick="downloadImg('${url}','scene_${sc.scene}')">⬇ โหลด</button>
+  <button class="iabtn" id="regen-${sc.scene}" onclick="regenScene(${sc.scene})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄</button>
+</div>`;
+            log('  ✅ ซีน '+sc.scene+' สร้างเสร็จ'+(attempt>1?' (retry '+(attempt-1)+')':''));
+            return true;
+          }
+        }catch(e){
+          lastErr=e;
+          if(attempt<3){
+            log('  ⚠️ ซีน '+sc.scene+' ติดขัด ลองใหม่ครั้งที่ '+attempt+'...');
+            await new Promise(r=>setTimeout(r,1500*attempt)); // หน่วงก่อน retry
+          }
+        }
+      }
+      log('  ❌ ซีน '+sc.scene+': '+(lastErr?lastErr.message:'ล้มเหลว'));
+      const card=document.getElementById('imgcard-'+sc.scene);
+      if(card) card.querySelector('div').innerHTML=`<div style="padding:12px;text-align:center;color:#c0392b;font-size:12px;">❌ ซีน ${sc.scene} ล้มเหลว<br><button onclick="regenScene(${sc.scene})" style="margin-top:6px;padding:4px 10px;border:1px solid #AFA9EC;border-radius:6px;cursor:pointer;background:#EEEDFE;color:#3C3489;font-size:11px;">🔄 ลองใหม่</button></div>`;
+      return false;
+    }
+
+    // สร้างรูปทีละ batch (3 ใบพร้อมกัน)
+    const BATCH=3;
+    let imgDoneCount=0;
+    for(let i=0;i<scenes.length;i+=BATCH){
+      const batch=scenes.slice(i,i+BATCH);
+      setStep(2,'sr','ซีน '+(i+1)+'-'+Math.min(i+BATCH,scenes.length)+'/'+scenes.length);
+      const results=await Promise.all(batch.map(sc=>genOneImage(sc)));
+      imgDoneCount+=results.filter(Boolean).length;
+    }
+    const imgDone=scenes.filter(s=>s.imgUrl).length;
+    document.getElementById('imgBadge').textContent=imgDone;
+    setStep(2,'sd','✅ '+imgDone+'/'+scenes.length);
+
+    // Step 3: รอผลโปสเตอร์ (ที่ยิงไปพร้อมซีนตั้งแต่ต้น)
+    log('\n[3/3] รอ Poster เสร็จ...');
+    try{
+      const purl=await posterPromise;
       if(purl){
-        const ih=selSize==='1792x1024'?'130px':'270px';
+        const pih=selSize==='1792x1024'?'130px':'270px';
         const card=document.createElement('div');card.className='imgcard';card.style.gridColumn='1/-1';
-        card.innerHTML=`<img src="${purl}" style="height:${ih};object-fit:cover;"/>
+        card.innerHTML=`<img src="${purl}" style="height:${pih};object-fit:cover;"/>
 <div class="ilab" style="background:#EEEDFE;color:#3C3489;font-weight:600;">🎨 Poster · ${selImgModel} · ${posterText==='yes'?'มีตัวหนังสือ':'ไม่มีตัวหนังสือ'} · ${posterPerson==='yes'?'มีคน':'Product Only'}</div>
 <div class="iact"><button class="iabtn" onclick="openImg('${purl}')">🔍 เปิดดู</button><button class="iabtn" onclick="downloadImg('${purl}','poster')">⬇ โหลด</button></div>`;
         document.getElementById('imgGrid').prepend(card);
         document.getElementById('imgBadge').textContent=imgDone+1;
+        setStep(3,'sd','✅ Poster สำเร็จ');
+      }else{
+        setStep(3,'se','❌ Poster ล้มเหลว');
       }
-      setStep(3,'sd','✅ Poster สำเร็จ');
     }catch(e){setStep(3,'se','❌ '+e.message);log('❌ Poster: '+e.message);}
 
     log('\n🎉 เสร็จ! รูปทั้งหมด '+(imgDone+1)+' รูป · ใช้ไป '+totalCost+' Token');
