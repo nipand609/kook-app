@@ -281,36 +281,13 @@ textarea{resize:vertical;line-height:1.6;}
     </div>
   </div>
 
-  <!-- Script Model: gpt-5.2 only -->
-  <div class="field">
-    <label class="lbl">โมเดลสร้างสคริปต์ / Hook / Voice-over</label>
-    <div style="display:flex;">
-      <button class="imgmbtn on" id="sm_gpt52" style="max-width:200px;cursor:default;">
-        <div style="font-size:18px;margin-bottom:3px;">🤖</div>
-        <div style="font-size:13px;font-weight:600;">GPT-5.2</div>
-        <div style="font-size:10px;color:#999;">OpenAI · สร้างสคริปต์</div>
-      </button>
-    </div>
-  </div>
+
   <div class="field"><label class="lbl">ขนาดรูป</label>
     <div class="size-btns">
       <button class="szb on" id="sz916" onclick="setSize('9:16','1024x1792')">9:16 แนวตั้ง</button>
       <button class="szb" id="sz169" onclick="setSize('16:9','1792x1024')">16:9 แนวนอน</button>
       <button class="szb" id="sz11" onclick="setSize('1:1','1024x1024')">1:1 สี่เหลี่ยม</button>
     </div>
-  </div>
-  <div class="field">
-    <label class="lbl">โมเดลสร้างรูป</label>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;" id="imgModelGrid">
-      <button class="imgmbtn on" id="im_gpt2" onclick="setImgModel('gpt-image-2',this)">
-        <div style="font-size:15px;margin-bottom:2px;">🎨</div>
-        <div style="font-size:12px;font-weight:600;">GPT Image 2</div>
-        <div style="font-size:10px;color:#999;">คุณภาพสูง · รองรับ reference</div>
-        <div style="font-size:10px;color:#f5a623;margin-top:2px;">~0.155 token/รูป</div>
-      </button>
-
-    </div>
-    <div style="font-size:11px;color:#aaa;margin-top:6px;">💡 ใช้ GPT Image 2 สำหรับผลลัพธ์ที่มีคุณภาพสูง</div>
   </div>
   <div class="field">
     <label class="lbl">รายละเอียดเพิ่มเติม / คาแรกเตอร์ / บรรยากาศ</label>
@@ -399,16 +376,8 @@ let prodImages=[], charImages=[], analysisResult=null;
 let selSize='1024x1792', selRatio='9:16';
 let selImgModel='gpt-image-2';
 let selScriptModel='gpt-5.2'; // gpt-5.2 only
+let selImgModel='gpt-image-2'; // gpt-image-2 only
 
-function setImgModel(model, btn){
-  selImgModel=model;
-  document.querySelectorAll('.imgmbtn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-}
-
-function setScriptModel(model, btn){
-  selScriptModel=model;
-}
 let posterText='yes', posterPerson='yes', posterStyle='cinematic_commercial';
 
 const RH='Real human appearance, realistic skin texture, visible pores, natural imperfections, non-AI face, realistic hands and fingers, documentary realism. Avoid plastic skin, AI beauty face, CGI look.';
@@ -978,9 +947,9 @@ VOICE-OVER RULES (สำคัญมาก):
       return;
     }
 
-    // Step 2: สร้างรูป parallel (3 พร้อมกัน — เร็วขึ้น 3x)
-    setStep(2,'sr','สร้างรูป (parallel)...');
-    log('\n[2/3] สร้างรูป '+scenes.length+' ซีน (3 พร้อมกัน)');
+    // Step 2: สร้างรูป sequential (1 ต่อ 1 — ไม่ติดขัด)
+    setStep(2,'sr','สร้างรูป (Sequential)...');
+    log('\n[2/3] สร้างรูป '+scenes.length+' ซีน (1 ต่อ 1 - เสถียร)');
     const ih=selSize==='1792x1024'?'100px':selSize==='1024x1024'?'150px':'180px';
 
     // สร้าง placeholder cards ก่อน
@@ -995,31 +964,29 @@ VOICE-OVER RULES (สำคัญมาก):
     document.getElementById('outCard').style.display='block';
     showTab('images');
 
-    // สร้างรูป 3 พร้อมกัน
-    const BATCH=3;
-    for(let i=0;i<scenes.length;i+=BATCH){
-      const batch=scenes.slice(i,i+BATCH);
-      setStep(2,'sr','ซีน '+(i+1)+'-'+Math.min(i+BATCH,scenes.length)+'/'+scenes.length);
-      await Promise.all(batch.map(async sc=>{
-        try{
-          const url=await callImage(veKey,sc.imagePrompt,RID+'-img-'+sc.scene);
-          if(url){
-            sc.imgUrl=url;
-            const card=document.getElementById('imgcard-'+sc.scene);
-            if(card) card.innerHTML=`<img src="${url}" style="height:${ih};"/>
+    // สร้างรูป 1 ต่อ 1 (sequential)
+    for(let i=0; i<scenes.length; i++){
+      const sc=scenes[i];
+      setStep(2,'sr','ซีน '+(i+1)+'/'+scenes.length);
+      try{
+        const url=await callImage(veKey,sc.imagePrompt,RID+'-img-'+sc.scene);
+        if(url){
+          sc.imgUrl=url;
+          const card=document.getElementById('imgcard-'+sc.scene);
+          if(card) card.innerHTML=`<img src="${url}" style="height:${ih};"/>
 <div class="ilab">ซีน ${sc.scene}: ${sc.title}</div>
 <div class="iact">
   <button class="iabtn" onclick="openImg('${url}')">🔍 เปิดดู</button>
   <button class="iabtn" onclick="downloadImg('${url}','scene_${sc.scene}')">⬇ โหลด</button>
   <button class="iabtn" id="regen-${sc.scene}" onclick="regenScene(${sc.scene})" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">🔄</button>
 </div>`;
-          }
-        }catch(e){
-          log('  ❌ ซีน '+sc.scene+': '+e.message);
-          const card=document.getElementById('imgcard-'+sc.scene);
-          if(card) card.querySelector('div').innerHTML=`<div style="padding:12px;text-align:center;color:#c0392b;font-size:12px;">❌ ซีน ${sc.scene} ล้มเหลว<br><button onclick="regenScene(${sc.scene})" style="margin-top:6px;padding:4px 10px;border:1px solid #AFA9EC;border-radius:6px;cursor:pointer;background:#EEEDFE;color:#3C3489;font-size:11px;">🔄 ลองใหม่</button></div>`;
+          log('  ✅ ซีน '+sc.scene+' สร้างเสร็จ');
         }
-      }));
+      }catch(e){
+        log('  ❌ ซีน '+sc.scene+': '+e.message);
+        const card=document.getElementById('imgcard-'+sc.scene);
+        if(card) card.querySelector('div').innerHTML=`<div style="padding:12px;text-align:center;color:#c0392b;font-size:12px;">❌ ซีน ${sc.scene} ล้มเหลว<br><button onclick="regenScene(${sc.scene})" style="margin-top:6px;padding:4px 10px;border:1px solid #AFA9EC;border-radius:6px;cursor:pointer;background:#EEEDFE;color:#3C3489;font-size:11px;">🔄 ลองใหม่</button></div>`;
+      }
     }
     const imgDone=scenes.filter(s=>s.imgUrl).length;
     document.getElementById('imgBadge').textContent=imgDone;
