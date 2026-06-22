@@ -381,6 +381,26 @@ let posterText='yes', posterPerson='yes', posterStyle='cinematic_commercial';
 
 const RH='Real human appearance, realistic skin texture, visible pores, natural imperfections, non-AI face, realistic hands and fingers, documentary realism. Avoid plastic skin, AI beauty face, CGI look.';
 
+// คำสั่งคุมสไตล์ตามประเภทภาพ — แยกระหว่าง "คนจริง" กับ "animation/anime"
+function isStylizedStyle(style){
+  const s=(style||'').toLowerCase();
+  return s.includes('pixar')||s.includes('anime')||s.includes('cgi')||s.includes('3d ')||s.includes('webtoon')||s.includes('illustration')||s.includes('cartoon')||s.includes('manga');
+}
+// คืนคำสั่ง realism ที่เหมาะกับสไตล์ที่เลือก
+function getRealismDirective(style){
+  if(isStylizedStyle(style)){
+    const s=(style||'').toLowerCase();
+    if(s.includes('pixar')||s.includes('3d')||s.includes('cgi'))
+      return 'Consistent 3D Pixar/Disney CGI render style throughout ALL scenes. Expressive stylized 3D characters, smooth CGI surfaces, vibrant animation lighting. NOT photorealistic, NOT real human photo.';
+    if(s.includes('anime')||s.includes('manga'))
+      return 'Consistent anime/manga illustration style throughout ALL scenes. Cel-shaded characters, clean line art, vivid anime coloring. NOT photorealistic, NOT real human photo.';
+    if(s.includes('webtoon'))
+      return 'Consistent Korean webtoon semi-realistic illustration style throughout ALL scenes. Detailed illustrated characters, cinematic webtoon coloring. NOT photorealistic, NOT real human photo.';
+    return 'Consistent stylized illustration/animation style throughout ALL scenes. NOT photorealistic, NOT real human photo.';
+  }
+  return RH; // ภาพคนจริง — ใช้ Real Human directive เดิม
+}
+
 const posterStyles={
   cinematic_commercial:'Ultra realistic cinematic commercial photography. Dramatic lighting, high contrast, deep shadows and highlights, rich color grading, premium feel, professional advertising photography.',
   soft_lifestyle:'Soft lifestyle photography. Natural warm pastel tones, gentle diffused window light, airy clean background, authentic everyday moment, cozy and inviting atmosphere.',
@@ -658,7 +678,7 @@ Character Identity: ${concept.characterIdentity||'-'}
     }
     const vid_id='vp_'+sc.scene;
     const block=document.createElement('div');block.className='scene-block';
-    block.innerHTML=`<div class="scene-hdr"><span class="scene-num">ซีน ${sc.scene}</span><span class="scene-ttl">${sc.title||''}</span></div>
+    block.innerHTML=`<div class="scene-hdr"><span class="scene-num">ซีน ${sc.scene}</span><span class="scene-ttl">${sc.title||''}</span>${sc.phase?`<span style="margin-left:auto;font-size:10px;background:#EEEDFE;color:#3C3489;padding:3px 9px;border-radius:20px;font-weight:600;">${sc.phase} · ${sc.beat||''}</span>`:''}</div>
 <div class="scene-body">
 <div class="sec-lbl">🎬 Video Prompt${!noVoiceSc?' + Voice-over':' (No Dialogue)'}</div>
 <div class="prompt-box" id="${vid_id}">${combined.trim()}</div>
@@ -878,51 +898,108 @@ Platform: ${platform}
     }
 
     // Step 1B: Scenes ทีละซีน
+    const realismDir=getRealismDirective(imgStyle); // เลือก directive ตามสไตล์ (คนจริง vs animation)
+    const styleEmphasis=isStylizedStyle(imgStyle)
+      ? `\n🎨 สไตล์ภาพสำคัญมาก: ทุกซีนต้องเป็น "${imgStyle}" — ไม่ใช่ภาพถ่ายคนจริง ทุกตัวละครต้อง render เป็นสไตล์นี้เหมือนกันหมด`
+      : '';
     const sysScene=`คุณคือ Kook Content Engine V2 — Creative Director ระดับ Top
 ประเภท: ${typeName}
 Scene Logic: ${typeLogic}
+รูปแบบภาพที่เลือก: ${imgStyle}${styleEmphasis}
 ${concept.charSheet?'Character Sheet: '+JSON.stringify(concept.charSheet):''}
 
 IMPORTANT RULES:
 - แต่ละซีนต้องไม่ซ้ำกัน ทั้งอารมณ์ ภาพ มุมกล้อง เหตุการณ์
 - คุมตัวละคร ชุด ทรงผม แสง สี mood ให้เหมือนเดิมทุกซีน
+- ทุกซีนต้องใช้สไตล์ภาพเดียวกันคือ "${imgStyle}" อย่างสม่ำเสมอ
 - Character: ${concept.characterIdentity||extra||'ตามที่วิเคราะห์ได้'}
-- ${RH}
+- ${realismDir}
 - ถ้ามีรูป Reference ให้ใช้เป็น reference เท่านั้น ห้าม copy
 - Prompt ต้องละเอียด พร้อมนำไปสร้างภาพและวิดีโอได้ทันที
 
 VOICE-OVER RULES (สำคัญมาก):
 - บทพูดต้องสั้น กระชับ ลึก 20-30 คำเท่านั้น
-- ห้ามขึ้นต้นซ้ำกันทุกซีน ต้องหลากหลาย
-- เลือก Hook pattern ให้เหมาะกับซีนนั้น:
-  * Pattern A (ตั้งคำถาม): "รู้ไหมว่า…" / "เคยสังเกตไหม…" / "ถามตัวเองเลย…"
+- ⛔ ห้ามขึ้นต้นด้วยคำซ้ำกับซีนอื่นเด็ดขาด — แต่ละซีนต้องขึ้นต้นต่างกันโดยสิ้นเชิง
+- ⛔ ห้ามใช้ "รู้ไหม / เคยสังเกต / รู้หรือไม่" เกิน 1 ครั้งในวิดีโอเดียว
+- ใช้ Hook pattern ตามที่กำหนดในแต่ละซีน (ผู้ใช้จะระบุว่าซีนนี้ใช้ Pattern ไหน):
+  * Pattern A (ตั้งคำถาม): "รู้ไหมว่า…" / "เคยสังเกตไหม…" / "ถามตัวเองสิ…"
   * Pattern B (บอกเล่าลึกลับ): "ไม่มีใครรู้ว่า…" / "มันเริ่มต้นจาก…" / "สิ่งที่เธอไม่รู้คือ…"
-  * Pattern C (เข้าฉากตรงๆ): "ฉันเห็นมันทุกคืน…" / "ตานีกระซิบว่า…" / "เงาที่ซ้อนอยู่…"
-  * Pattern D (twist): "แต่ไม่มีใครเชื่อ…" / "จนกระทั่งวันนั้น…" / "นั่นแหละคือความจริง…"
-  * Pattern E (ขายของ): "หยุดก่อนนะ…" / "ลองดูสักครั้ง…" / "นี่คือเหตุผลที่…"
+  * Pattern C (เข้าฉากตรงๆ): "ฉันเห็นมันทุกคืน…" / "ตอนนั้นเอง…" / "มือที่สั่น…"
+  * Pattern D (twist/พลิก): "แต่ไม่มีใครเชื่อ…" / "จนกระทั่งวันนั้น…" / "นั่นแหละความจริง…"
+  * Pattern E (action/ชวน): "หยุดก่อน…" / "ลองดูสิ…" / "นี่คือเหตุผล…"
+- เปิดด้วยคำกริยา/คำนาม/ความรู้สึก สลับกันไป ไม่ใช่คำถามทุกซีน
 - บทพูดต้องเชื่อมกับภาพซีนนั้นโดยตรง ไม่ใช่บรรยายทั่วไป
 - ฟังแล้วรู้สึก — ไม่ใช่แค่อ่าน
-- ห้ามพูดตรงๆ ให้ hint ให้คนดูต้องคิดต่อเอง
+- ห้ามพูดตรงๆ ให้ hint ให้คนดูคิดต่อเอง
 
 สร้าง 1 ซีนเท่านั้น ตอบ JSON บรรทัดเดียว ไม่มี markdown:
-{"scene":0,"title":"ชื่อซีนภาษาไทย","imagePrompt":"[ENGLISH: 2x4 grid 8 panels ${selRatio} ${imgStyle}. SCENE_DESCRIPTION. Character: CHAR_ID. ${RH} Same character same outfit same hairstyle same lighting same color grading same mood throughout. Camera: CAMERA_ANGLE. No text overlay. No watermark. ID:RUNID]","videoPrompt":"[ENGLISH: Ultra realistic cinematic 10s video. SCENE_DESCRIPTION. Same character same outfit same hairstyle same lighting same mood. Shot1:X Shot2:X Shot3:X Shot4:X Shot5:X Shot6:X Shot7:X Shot8:X. Voice starts after 0.50 seconds.]","voiceOver":"${noVoice?'':' บทพูด 20-30 คำ ขึ้นต้นด้วยประโยคดึงดูด เชื่อมกับภาพซีนนี้โดยตรง'}","voiceStyle":"${voiceStyle}","soundDesign":"${noVoice?'• Ambient • Environment • Transition • Emotion':''}","musicStyle":"${noVoice?'เช่น Dark Fantasy / Horror Ambience / etc':''}"}`;
+{"scene":0,"title":"ชื่อซีนภาษาไทย","imagePrompt":"[ENGLISH: 2x4 grid 8 panels ${selRatio} ${imgStyle}. SCENE_DESCRIPTION. Character: CHAR_ID. ${realismDir} Same character same outfit same hairstyle same lighting same color grading same mood and SAME ART STYLE (${imgStyle}) throughout. Camera: CAMERA_ANGLE. No text overlay. No watermark. ID:RUNID]","videoPrompt":"[ENGLISH: ${imgStyle}, 10s video. SCENE_DESCRIPTION. Same character same outfit same hairstyle same lighting same mood same art style. Shot1:X Shot2:X Shot3:X Shot4:X Shot5:X Shot6:X Shot7:X Shot8:X. Voice starts after 0.50 seconds.]","voiceOver":"${noVoice?'':' บทพูด 20-30 คำ ขึ้นต้นด้วยประโยคดึงดูด เชื่อมกับภาพซีนนี้โดยตรง'}","voiceStyle":"${voiceStyle}","soundDesign":"${noVoice?'• Ambient • Environment • Transition • Emotion':''}","musicStyle":"${noVoice?'เช่น Dark Fantasy / Horror Ambience / etc':''}"}`;
 
     const CHAR_ID=concept.charSheet?concept.charSheet.characters.map(c=>`${c.name}: ${c.imagePromptBase||c.appearance}`).join(' | '):(concept.characterIdentity||extra||'as described');
 
+    // ── Phase Mapping: parse typeLogic → กระจายซีนเข้า Phase/Beat ────────
+    // typeLogic รูปแบบ: "Hook=หยุดสายตา/สงสัย/..., Problem=ปัญหาเริ่ม/..., ..."
+    function buildPhaseMap(logicStr, nScenes){
+      const phases=[];
+      (logicStr||'').split(/,\s*(?=[^=]+=)/).forEach(part=>{
+        const eq=part.indexOf('=');
+        if(eq<0) return;
+        const name=part.slice(0,eq).trim();
+        const beats=part.slice(eq+1).split('/').map(b=>b.trim()).filter(Boolean);
+        if(name&&beats.length) phases.push({name,beats});
+      });
+      if(!phases.length) return Array.from({length:nScenes},(_, i)=>({phase:'Scene',beat:'ลำดับ '+(i+1)}));
+      // เฉลี่ยจำนวนซีนเข้าแต่ละ phase
+      const per=Math.floor(nScenes/phases.length);
+      let extra=nScenes-per*phases.length; // เศษกระจายให้ phase แรกๆ
+      const counts=phases.map(()=>per);
+      for(let k=0;k<extra;k++) counts[k]++;
+      // สร้าง map ทีละซีน เลือก beat กระจายภายใน phase
+      const map=[];
+      phases.forEach((ph,pi)=>{
+        const cnt=counts[pi];
+        for(let s=0;s<cnt;s++){
+          // เลือก beat กระจายตามตำแหน่งในชุด
+          const beatIdx=cnt===1?0:Math.round(s*(ph.beats.length-1)/(cnt-1));
+          map.push({phase:ph.name,beat:ph.beats[beatIdx]||ph.beats[0]});
+        }
+      });
+      // เผื่อ map สั้นกว่า nScenes (ปัดเศษ)
+      while(map.length<nScenes){const last=phases[phases.length-1];map.push({phase:last.name,beat:last.beats[last.beats.length-1]});}
+      return map.slice(0,nScenes);
+    }
+    const phaseMap=buildPhaseMap(typeLogic,sceneCount);
+    log('\n[Phase Map] '+phaseMap.map((m,i)=>`#${i+1}:${m.phase}·${m.beat}`).join(' | '));
+
+    // หมุนเวียน Pattern บทพูดแบบบังคับ ไม่ให้ซ้ำ
+    const VOICE_PATTERNS=['A','B','C','D','E'];
     for(let i=1;i<=sceneCount;i++){
       setStep(1,'sr','สร้างซีน '+i+'/'+sceneCount);
       const {p,c}=getSceneImgs(i);
       const cam=CAMERAS[(i-1)%CAMERAS.length];
       const prev=scenes.map(s=>s.title).join(' | ');
-      const msg=`เนื้อหา: ${desc}\nสไตล์: ${imgStyle}\nซีนที่: ${i}/${sceneCount}\nCamera: ${cam}\n${extra?'รายละเอียด: '+extra:''}\n${prev?'ซีนก่อนหน้า (ต้องไม่ซ้ำ): '+prev:''}\nRunID: ${RID}-s${i}`;
+      const ph=phaseMap[i-1]; // Phase/Beat ของซีนนี้
+      // รวบรวมบทพูดเดิม + คำขึ้นต้น เพื่อกันซ้ำ
+      const prevVoices=scenes.map(s=>s.voiceOver).filter(Boolean);
+      const prevOpeners=prevVoices.map(v=>v.trim().split(/[\s,]/).slice(0,3).join(' ')).join(' / ');
+      const forcePattern=VOICE_PATTERNS[(i-1)%VOICE_PATTERNS.length];
+      const msg=`เนื้อหา: ${desc}\nสไตล์: ${imgStyle}\nซีนที่: ${i}/${sceneCount}\nCamera: ${cam}\n${extra?'รายละเอียด: '+extra:''}\n${prev?'ซีนก่อนหน้า (ต้องไม่ซ้ำ): '+prev:''}`
+        +`\n\n🎯 ซีนนี้อยู่ใน Phase: "${ph.phase}" · Beat: "${ph.beat}"`
+        +`\n→ ภาพและบทพูดต้องสื่อถึง "${ph.beat}" ตามโครงสร้าง ${typeName}`
+        +`\n→ บทพูดต้องทำหน้าที่ของ Phase "${ph.phase}" และเชื่อมต่อเป็นเรื่องเดียวกับซีนก่อนหน้า`
+        +`\n\n⚠️ บทพูดซีนนี้ให้ใช้ Pattern ${forcePattern} เท่านั้น (ตาม VOICE-OVER RULES)`
+        +(prevOpeners?`\n⛔ ห้ามขึ้นต้นซ้ำกับซีนก่อนหน้าเหล่านี้เด็ดขาด: ${prevOpeners}`:'')
+        +(prevVoices.length?`\n📋 บทพูดที่ใช้ไปแล้ว (ห้ามซ้ำสำนวน):\n- ${prevVoices.join('\n- ')}`:'')
+        +`\nRunID: ${RID}-s${i}`;
       try{
         const raw=await callGPT52(veKey,
-          sysScene.replace('CAMERA_ANGLE',cam).replace('SCENE_DESCRIPTION','unique cinematic scene #'+i).replace('RUNID',RID+'-s'+i).replace('CHAR_ID',CHAR_ID),
+          sysScene.replace('CAMERA_ANGLE',cam).replace('SCENE_DESCRIPTION',ph.phase+' phase - '+ph.beat).replace('RUNID',RID+'-s'+i).replace('CHAR_ID',CHAR_ID),
           buildImgContent([...p,...c],msg));
         const sc=JSON.parse(raw.replace(/```json|```/g,'').trim());
         sc.scene=i; sc._refImgs=[...p,...c];
+        sc.phase=ph.phase; sc.beat=ph.beat;
         scenes.push(sc);
-        log('  ✅ ซีน '+i+': '+sc.title);
+        log('  ✅ ซีน '+i+' ['+ph.phase+'·'+ph.beat+']: '+sc.title);
       }catch(e){log('  ❌ ซีน '+i+': '+e.message);}
     }
     if(!scenes.length)throw new Error('สร้างสคริปต์ไม่ได้ กรุณาตรวจสอบ API Key');
@@ -1004,18 +1081,20 @@ VOICE-OVER RULES (สำคัญมาก):
     const textRule=posterText==='yes'
       ?`Thai text REQUIRED in image: Main hook "${hook}" | Title "${pt}" | Sub-text "${ps}". Bold modern Thai font, clear readable, correct spelling, clean layout, no messy text.`
       :'NO TEXT at all. Pure visual storytelling. Absolutely no letters, words, or captions.';
+    const realismDirP=getRealismDirective(imgStyle); // directive เดียวกับซีน
     const personRule=posterPerson==='yes'
-      ?`Include character. ${concept.characterIdentity||extra||''} ${RH}`
+      ?`Include character. ${concept.characterIdentity||extra||''} ${realismDirP}`
       :'Product-only composition. NO human figures. Clean professional product photography.';
     const posterPrompt=`Create bold ${selRatio} commercial poster.
 Content type: ${typeName}
 Subject: ${desc}
 ${(pProd.length+pChar.length)?'Reference images attached — use ONLY for product/character identity. New scene, new composition, new background, new lighting.':''}
+ART STYLE (สำคัญ ต้องตรงกับซีน): ${imgStyle}
 STYLE: ${posterStyles[posterStyle]}
 PERSON RULE: ${personRule}
 TEXT RULE: ${textRule}
 Visual direction: ${psc}. Hero shot center composition.
-${RH}
+${realismDirP}
 Avoid: No watermark, no distortion, no wrong anatomy${posterText==='no'?', absolutely NO text of any kind':''}.`;
     try{
       // Poster — ใช้ callImage เลย (รองรับทุกโมเดล)
